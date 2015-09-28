@@ -22,11 +22,12 @@ public class Module<R extends Resource, C extends Container> extends AbstractMod
     private final Class<C> container;
     private final Map<Method, Method> resourceToContainer;
 
-    public Module(final Class<R> resource, final Class<C> container,
-            final Class<?> bindings) {
-        Preconditions.checkArgument(bindings.isInterface());
-        Preconditions.checkArgument(bindings.isAssignableFrom(resource));
-        Preconditions.checkArgument(bindings.isAssignableFrom(container));
+    public Module(final Class<R> resource, final Class<C> container, final Class<?> bindings) {
+        Preconditions.checkArgument(Modifier.isFinal(container.getModifiers()),
+                container + " must be declared as final");
+        Preconditions.checkArgument(bindings.isInterface(), bindings + " must be an interface");
+        Preconditions.checkArgument(bindings.isAssignableFrom(resource), resource + " must implement " + bindings);
+        Preconditions.checkArgument(bindings.isAssignableFrom(container), container + " must implement " + bindings);
 
         this.resource = resource;
         this.container = container;
@@ -55,7 +56,7 @@ public class Module<R extends Resource, C extends Container> extends AbstractMod
         }
         return null;
     }
-    
+
     private final boolean matchParameters(final Parameter[] parameters1, final Parameter[] parameters2) {
         if (parameters1.length != parameters2.length) {
             return false;
@@ -63,7 +64,7 @@ public class Module<R extends Resource, C extends Container> extends AbstractMod
             for (int i = 0; i < parameters1.length; i++) {
                 final Parameter parameter1 = parameters1[i];
                 final Parameter parameter2 = parameters2[i];
-                
+
                 if (!parameter1.getType().equals(parameter2.getType())) {
                     return false;
                 }
@@ -73,9 +74,8 @@ public class Module<R extends Resource, C extends Container> extends AbstractMod
     }
 
     private final C bindContainer() {
-        C containerInstance;
         try {
-            containerInstance = container.newInstance();
+            final C containerInstance = container.newInstance();
             bind(container).toInstance(containerInstance);
             return containerInstance;
         } catch (InstantiationException | IllegalAccessException e) {

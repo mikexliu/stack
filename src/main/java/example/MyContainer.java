@@ -2,7 +2,7 @@ package example;
 
 import resources.Container;
 
-public class MyContainer extends Container implements MyBindings {
+public final class MyContainer extends Container implements MyBindings {
 
     @Override
     public void create(final MyItem item) {
