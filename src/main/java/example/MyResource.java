@@ -17,7 +17,7 @@ import resources.Resource;
  * @author mike
  */
 @Path("/my-resource")
-public abstract class MyResource extends Resource<MyItem> implements MyBindings<MyItem> {
+public abstract class MyResource extends Resource implements MyBindings {
 	
 	@GET
 	@Path("/call")

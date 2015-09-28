@@ -1,6 +1,6 @@
 package example;
 
-import resources.Item;
+import objects.Item;
 
 public class MyItem extends Item {
 

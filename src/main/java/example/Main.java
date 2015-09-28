@@ -17,13 +17,13 @@ import com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory;
 public class Main {
     public static void main(String[] args) throws IllegalArgumentException, IOException {
 
-        MyModule myModule = new MyModule();
-        Injector injector = Guice.createInjector(new ServletModule(), myModule);
+        final MyModule myModule = new MyModule();
+        final Injector injector = Guice.createInjector(new ServletModule(), myModule);
         
-        ResourceConfig rc = new DefaultResourceConfig(MyResource.class);
+        final ResourceConfig rc = new DefaultResourceConfig(MyResource.class);
         IoCComponentProviderFactory ioc = new GuiceComponentProviderFactory(rc, injector);
         
-        HttpServer server = GrizzlyServerFactory.createHttpServer("http://localhost:5555", rc, ioc);
+        final HttpServer server = GrizzlyServerFactory.createHttpServer("http://localhost:5555", rc, ioc);
         server.start();
         System.out.println("Press any key to exit...");
         System.in.read();
