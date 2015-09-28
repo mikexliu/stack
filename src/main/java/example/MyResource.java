@@ -15,45 +15,34 @@ import resources.Resource;
 /**
  * 
  * @author mike
- * TODO: See if we can turn this into an abstract class instead
  */
 @Path("/my-resource")
-public class MyResource extends Resource<MyItem> {
+public abstract class MyResource extends Resource<MyItem> implements MyBindings<MyItem> {
 	
 	@GET
 	@Path("/call")
-	public String call() {
-		return null;
-	}
+	public abstract String call();
 
 	@Override
 	@POST
 	@Path("/")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void create(final MyItem item) {
-	    
-	}
+    public abstract void create(final MyItem item);
 	
 	@Override
 	@GET
 	@Path("/{_id}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public MyItem read(@PathParam("_id") final String _id) {
-		return null;
-	}
+	public abstract MyItem read(@PathParam("_id") final String _id);
 	
 	@Override
 	@PUT
 	@Path("/{_id}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public MyItem update(@PathParam("_id") final String _id, final MyItem item) {
-		return null;
-	}
+	public abstract MyItem update(@PathParam("_id") final String _id, final MyItem item);
 	
 	@Override
 	@DELETE
 	@Path("/{_id}")
-	public void delete(@PathParam("_id") final String _id) {
-	    
-	}
+	public abstract void delete(@PathParam("_id") final String _id);
 }

@@ -2,9 +2,9 @@ package example;
 
 import inject.Module;
 
-public class MyModule extends Module<MyItem> {
+public class MyModule extends Module<MyItem, MyResource, MyContainer> {
 
 	public MyModule() {
-		super(MyItem.class, MyContainer.class, MyResource.class);
+		super(MyItem.class, MyResource.class, MyContainer.class);
 	}
 }

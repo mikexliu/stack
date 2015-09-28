@@ -1,11 +1,12 @@
 package example;
 
-import inject.Injector;
 
 import java.io.IOException;
 
 import org.glassfish.grizzly.http.server.HttpServer;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.servlet.ServletModule;
 import com.sun.jersey.api.container.grizzly2.GrizzlyServerFactory;
 import com.sun.jersey.api.core.DefaultResourceConfig;
@@ -17,8 +18,8 @@ public class Main {
     public static void main(String[] args) throws IllegalArgumentException, IOException {
 
         MyModule myModule = new MyModule();
-        Injector injector = new Injector(new ServletModule(), myModule);
-
+        Injector injector = Guice.createInjector(new ServletModule(), myModule);
+        
         ResourceConfig rc = new DefaultResourceConfig(MyResource.class);
         IoCComponentProviderFactory ioc = new GuiceComponentProviderFactory(rc, injector);
         
