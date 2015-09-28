@@ -1,6 +1,5 @@
 package example;
 
-
 import java.io.IOException;
 
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -18,10 +17,10 @@ public class Main {
 
         final MyModule myModule = new MyModule();
         final Injector injector = Guice.createInjector(myModule);
-        
+
         final ResourceConfig rc = new DefaultResourceConfig(MyResource.class);
         IoCComponentProviderFactory ioc = new GuiceComponentProviderFactory(rc, injector);
-        
+
         final HttpServer server = GrizzlyServerFactory.createHttpServer("http://localhost:5555", rc, ioc);
         server.start();
         System.out.println("Press any key to exit...");
