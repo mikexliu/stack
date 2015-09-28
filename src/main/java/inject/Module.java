@@ -29,6 +29,10 @@ public class Module<R extends Resource, C extends Container> extends AbstractMod
         Preconditions.checkArgument(bindings.isAssignableFrom(resource), resource + " must implement " + bindings);
         Preconditions.checkArgument(bindings.isAssignableFrom(container), container + " must implement " + bindings);
 
+        // TODO: remove bindings from the constructor; automatically find the
+        // interface shared between resource and container
+        // container.getInterfaces()
+
         this.resource = resource;
         this.container = container;
         this.resourceToContainer = Maps.newHashMap();
