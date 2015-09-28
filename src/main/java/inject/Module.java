@@ -83,7 +83,6 @@ public class Module<R extends Resource, C extends Container> extends AbstractMod
         }
     }
 
-    @SuppressWarnings("unchecked")
     private final R bindResource(final C containerInstance) {
         final ProxyFactory factory = new ProxyFactory();
         factory.setSuperclass(resource);
@@ -103,7 +102,7 @@ public class Module<R extends Resource, C extends Container> extends AbstractMod
         };
 
         try {
-            R resourceInstance = (R) factory.create(new Class<?>[0], new Object[0], handler);
+            R resourceInstance = resource.cast(factory.create(new Class<?>[0], new Object[0], handler));
             bind(resource).toInstance(resourceInstance);
             return resourceInstance;
         } catch (NoSuchMethodException | IllegalArgumentException | InstantiationException | IllegalAccessException

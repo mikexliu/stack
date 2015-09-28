@@ -12,10 +12,6 @@ import javax.ws.rs.core.MediaType;
 
 import resources.Resource;
 
-/**
- * 
- * @author mike
- */
 @Path("/my-resource")
 public abstract class MyResource extends Resource implements MyBindings {
 	

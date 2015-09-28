@@ -1,6 +1,6 @@
 package example;
 
-import objects.Item;
+import persistence.Item;
 
 public class MyItem extends Item {
 
