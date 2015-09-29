@@ -17,9 +17,9 @@ public abstract class MyResource extends Resource implements MyInterface {
 
     @Override
     @POST
-    @Path("/")
+    @Path("/create")
     @Consumes(MediaType.APPLICATION_JSON)
-    public abstract void create(final MyItem item);
+    public abstract String create(final MyItem item);
 
     @Override
     @GET
@@ -29,9 +29,9 @@ public abstract class MyResource extends Resource implements MyInterface {
 
     @Override
     @PUT
-    @Path("/{_id}")
+    @Path("/update")
     @Consumes(MediaType.APPLICATION_JSON)
-    public abstract MyItem update(@PathParam("_id") final String _id, final MyItem item);
+    public abstract void update(@PathParam("_id") final String _id, final MyItem item);
 
     @Override
     @DELETE

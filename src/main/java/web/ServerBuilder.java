@@ -42,6 +42,7 @@ public class ServerBuilder {
         for (final Key<?> key : keys) {
             final Class<?> classType = key.getTypeLiteral().getRawType();
             if (classType.isAssignableFrom(Resource.class)) {
+                System.out.println(classType);
                 resources.add(classType);
             }
         }

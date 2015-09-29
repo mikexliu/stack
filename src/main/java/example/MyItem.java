@@ -1,7 +1,7 @@
 package example;
 
-import persistence.Item;
 
-public class MyItem extends Item {
-
+public class MyItem {
+    public String _id;
+    public String data;
 }

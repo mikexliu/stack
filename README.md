@@ -5,7 +5,12 @@ Provide an extremely easy-to-setup REST endpoint. Many libraries stress separati
 ##Dependencies
 * javassist: 3.12.1.GA
 * guice: 3.0
-* jersey: 1.19
+* jersey-guice: 1.19
+* jersey-core: 1.19
+* jersey-grizzly2: 1.19
+* javax.ws.rs-api: 2.0.1
+* servlet-api: 2.5
+* guava: 18.0
 * junit: 4.12 [unused]
 
 ##Usage
@@ -14,14 +19,15 @@ There are only four classes (and one main class) that need to be implemented to 
 Define the `interface`. This is the interface that is shared between the `resource` and the `container`.
 ```java
 public interface MyInterface {
-    public void create(final MyItem item);
+    public String create(final MyItem item);
 
     public MyItem read(final String _id);
 
-    public MyItem update(final String _id, final MyItem item);
+    public void update(final String _id, final MyItem item);
 
     public void delete(final String _id);
 }
+
 ```
 
 Define the `resource`. The class should be `abstract` as only the `annotations` are used. It follows the `jax-rs` specifications and implements the `interface` defined. Note that it must extend `Resource`.
@@ -45,7 +51,7 @@ public abstract class MyResource extends Resource implements MyInterface {
     @POST
     @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)
-    public abstract void create(final MyItem item);
+    public abstract String create(final MyItem item);
 
     @Override
     @GET
@@ -57,41 +63,50 @@ public abstract class MyResource extends Resource implements MyInterface {
     @PUT
     @Path("/{_id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public abstract MyItem update(@PathParam("_id") final String _id, final MyItem item);
+    public abstract void update(@PathParam("_id") final String _id, final MyItem item);
 
     @Override
     @DELETE
     @Path("/{_id}")
     public abstract void delete(@PathParam("_id") final String _id);
 }
+
 ```
 
 Define the `container`. This is where the `application` lies. It also implements the `interface` defined. Note that it must extended `Container`.
 ```java
+import java.util.Map;
+import java.util.UUID;
+
 import resources.Container;
+
+import com.google.common.collect.Maps;
 
 public final class MyContainer extends Container implements MyInterface {
 
+    private Map<String, MyItem> items = Maps.newHashMap();
+
     @Override
-    public void create(final MyItem item) {
-        System.out.println("create " + item);
+    public String create(final MyItem item) {
+        item._id = UUID.randomUUID().toString();
+        items.put(item._id, item);
+        return item._id;
     }
 
     @Override
     public MyItem read(final String _id) {
-        System.out.println("read " + _id);
-        return null;
+        return items.get(_id);
     }
 
     @Override
-    public MyItem update(final String _id, final MyItem item) {
-        System.out.println("update " + _id + " with " + item);
-        return null;
+    public void update(final String _id, final MyItem item) {
+        item._id = _id;
+        items.put(item._id, item);
     }
 
     @Override
     public void delete(final String _id) {
-        System.out.println("delete " + _id);
+        items.remove(_id);
     }
 }
 ```
