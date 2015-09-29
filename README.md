@@ -1,6 +1,13 @@
 #stack
 ##Introduction
-Provide an extremely easy-to-setup REST endpoint. Many libraries stress separation of concerns and modular code but very few end up actually being implemented correctly. With `stack`, not only will your project be modular, it will come naturally with Java's coding style. Dependencies: Guice, Jersey, and Swagger. 
+Provide an extremely easy-to-setup REST endpoint. Many libraries stress separation of concerns and modular code but very few end up actually being implemented correctly. With `stack`, not only will your project be modular, it will come naturally with Java's coding style.
+
+##Dependencies
+* javassist: 3.12.1.GA
+* guice: 3.0
+* jersey: 1.19
+* swagger: 1.5.3-M1 [unused]
+* junit: 4.12 [unused]
 
 ##Usage
 There are only four classes (and one main class) that need to be implemented to see everything in action:
