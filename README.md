@@ -25,7 +25,7 @@ public interface MyInterface {
 }
 ```
 
-Define the `resource`. The class should be `abstract` since the only important things to focus on are the `annotations`. It follows the `jax-rs` specifications and implements the `interface` defined. Note that it must extend `Resource`.
+Define the `resource`. The class should be `abstract` as only the `annotations` are used. It follows the `jax-rs` specifications and implements the `interface` defined. Note that it must extend `Resource`.
 ```java
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
