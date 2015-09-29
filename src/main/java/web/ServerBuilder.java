@@ -15,6 +15,7 @@ import com.google.inject.Key;
 import com.sun.jersey.api.container.grizzly2.GrizzlyServerFactory;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
+import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.core.spi.component.ioc.IoCComponentProviderFactory;
 import com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory;
 
@@ -42,11 +43,12 @@ public class ServerBuilder {
         for (final Key<?> key : keys) {
             final Class<?> classType = key.getTypeLiteral().getRawType();
             if (classType.isAssignableFrom(Resource.class)) {
-                System.out.println(classType);
                 resources.add(classType);
             }
         }
+
         final ResourceConfig rc = new DefaultResourceConfig(resources);
+        rc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, true);
         final IoCComponentProviderFactory ioc = new GuiceComponentProviderFactory(rc, injector);
 
         try {

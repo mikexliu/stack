@@ -3,6 +3,9 @@ package example;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import resources.Container;
 
 import com.google.common.collect.Maps;
@@ -13,7 +16,6 @@ public final class MyContainer extends Container implements MyInterface {
 
     @Override
     public String create(final MyItem item) {
-        System.out.println("create");
         item._id = UUID.randomUUID().toString();
         items.put(item._id, item);
         return item._id;
@@ -25,13 +27,19 @@ public final class MyContainer extends Container implements MyInterface {
     }
 
     @Override
-    public void update(final String _id, final MyItem item) {
+    public Response update(final String _id, final MyItem item) {
+        if (!items.containsKey(_id)) {
+            return Response.status(Status.NO_CONTENT).build();
+        }
+
         item._id = _id;
-        items.put(item._id, item);
+        items.put(_id, item);
+        return Response.ok().build();
     }
 
     @Override
-    public void delete(final String _id) {
+    public Response delete(final String _id) {
         items.remove(_id);
+        return Response.status(Status.NO_CONTENT).build();
     }
 }

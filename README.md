@@ -18,16 +18,17 @@ There are only four classes (and one main class) that need to be implemented to 
 
 Define the `interface`. This is the interface that is shared between the `resource` and the `container`.
 ```java
+import javax.ws.rs.core.Response;
+
 public interface MyInterface {
     public String create(final MyItem item);
 
     public MyItem read(final String _id);
 
-    public void update(final String _id, final MyItem item);
+    public Response update(final String _id, final MyItem item);
 
-    public void delete(final String _id);
+    public Response delete(final String _id);
 }
-
 ```
 
 Define the `resource`. The class should be `abstract` as only the `annotations` are used. It follows the `jax-rs` specifications and implements the `interface` defined. Note that it must extend `Resource`.
@@ -41,6 +42,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import resources.Resource;
 
@@ -63,12 +65,12 @@ public abstract class MyResource extends Resource implements MyInterface {
     @PUT
     @Path("/{_id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public abstract void update(@PathParam("_id") final String _id, final MyItem item);
+    public abstract Response update(@PathParam("_id") final String _id, final MyItem item);
 
     @Override
     @DELETE
     @Path("/{_id}")
-    public abstract void delete(@PathParam("_id") final String _id);
+    public abstract Response delete(@PathParam("_id") final String _id);
 }
 
 ```
@@ -77,6 +79,9 @@ Define the `container`. This is where the `application` lies. It also implements
 ```java
 import java.util.Map;
 import java.util.UUID;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import resources.Container;
 
@@ -99,14 +104,20 @@ public final class MyContainer extends Container implements MyInterface {
     }
 
     @Override
-    public void update(final String _id, final MyItem item) {
-        item._id = _id;
-        items.put(item._id, item);
+    public Response update(final String _id, final MyItem item) {
+        if (!items.containsKey(_id)) {
+            return Response.status(Status.NO_CONTENT).build();
+        } else {
+            item._id = _id;
+            items.put(_id, item);
+            return Response.ok().build();
+        }
     }
 
     @Override
-    public void delete(final String _id) {
+    public Response delete(final String _id) {
         items.remove(_id);
+        return Response.status(Status.NO_CONTENT).build();
     }
 }
 ```
@@ -162,24 +173,20 @@ public class Main {
 
 Let's see it in action:
 ```
-user@vm:~$ curl -X GET "http://localhost:5555/my-resource/1
-```
-```
-Sep 28, 2015 8:40:42 PM com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory register
-INFO: Registering example.MyResource as a root resource class
-Sep 28, 2015 8:40:42 PM com.sun.jersey.server.impl.application.WebApplicationImpl _initiate
-INFO: Initiating Jersey application, version 'Jersey: 1.19 02/11/2015 03:25 AM'
-Sep 28, 2015 8:40:43 PM com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory getComponentProvider
-INFO: Binding example.MyResource to GuiceManagedComponentProvider with the scope "Singleton"
-Sep 28, 2015 8:40:43 PM com.sun.jersey.spi.inject.Errors processErrorMessages
-WARNING: The following warnings have been detected with resource and/or provider classes:
-  WARNING: A sub-resource method, public abstract void example.MyResource.create(example.MyItem), with URI template, "/", is treated as a resource method
-Sep 28, 2015 8:40:43 PM org.glassfish.grizzly.http.server.NetworkListener start
-INFO: Started listener bound to [localhost:5555]
-Sep 28, 2015 8:40:43 PM org.glassfish.grizzly.http.server.HttpServer start
-INFO: [HttpServer] Started.
-Press any key to exit...
-read 1
+user@vm:~$ curl -X POST "http://localhost:5555/my-resource/" -d "{\"data\":\"data\"}" --header 'Content-Type: application/json'
+1f1dd3af-2a6c-4b54-bcf6-f125d3fada65
+
+user@vm:~$ curl -X GET "http://localhost:5555/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65"
+{"_id":"1f1dd3af-2a6c-4b54-bcf6-f125d3fada65","data":"data"}
+
+curl -X PUT "http://localhost:5555/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65" -d "{\"data\": \"data2\"}" --header 'Content-Type: application/json'
+{"_id":"1f1dd3af-2a6c-4b54-bcf6-f125d3fada65","data":"data2"}
+
+curl -X DELETE "http://localhost:5555/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65"
+curl -X GET "http://localhost:5555/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65" -I
+HTTP/1.1 204 No Content
+Content-Type: application/json
+Date: Tue, 29 Sep 2015 05:43:26 GMT
 ```
 
 #Extra Goodies

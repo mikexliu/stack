@@ -104,8 +104,6 @@ public abstract class Module<R extends Resource, C extends Container> extends Ab
         final MethodHandler handler = new MethodHandler() {
             @Override
             public Object invoke(Object b, Method thisMethod, Method proceed, Object[] args) throws Throwable {
-                System.out.println("Calling " + thisMethod + " on " + containerInstance.getClass());
-                
                 final Method containerMethod = resourceToContainer.get(thisMethod);
                 if (containerMethod != null) {
                     return containerMethod.invoke(containerInstance, args);

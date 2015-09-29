@@ -9,6 +9,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import resources.Resource;
 
@@ -17,7 +18,7 @@ public abstract class MyResource extends Resource implements MyInterface {
 
     @Override
     @POST
-    @Path("/create")
+    @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)
     public abstract String create(final MyItem item);
 
@@ -29,12 +30,12 @@ public abstract class MyResource extends Resource implements MyInterface {
 
     @Override
     @PUT
-    @Path("/update")
+    @Path("/{_id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public abstract void update(@PathParam("_id") final String _id, final MyItem item);
+    public abstract Response update(@PathParam("_id") final String _id, final MyItem item);
 
     @Override
     @DELETE
     @Path("/{_id}")
-    public abstract void delete(@PathParam("_id") final String _id);
+    public abstract Response delete(@PathParam("_id") final String _id);
 }
