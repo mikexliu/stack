@@ -115,7 +115,7 @@ public abstract class Module<R extends Resource, C extends Container> extends Ab
         };
 
         try {
-            R resourceInstance = resource.cast(factory.create(new Class<?>[0], new Object[0], handler));
+            final R resourceInstance = resource.cast(factory.create(new Class<?>[0], new Object[0], handler));
             bind(resource).toInstance(resourceInstance);
             return resourceInstance;
         } catch (NoSuchMethodException | IllegalArgumentException | InstantiationException | IllegalAccessException
