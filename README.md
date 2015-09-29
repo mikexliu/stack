@@ -3,15 +3,15 @@
 Provide an extremely easy-to-setup REST endpoint. Many libraries stress separation of concerns and modular code but very few end up actually being implemented correctly. With `stack`, not only will your project be modular, it will come naturally with Java's coding style.
 
 ##Dependencies
-* javassist: 3.12.1.GA
-* guice: 3.0
-* jersey-guice: 1.19
-* jersey-core: 1.19
-* jersey-grizzly2: 1.19
-* javax.ws.rs-api: 2.0.1
-* servlet-api: 2.5
-* guava: 18.0
-* junit: 4.12 [unused]
+* javassist 3.12.1.GA
+* jackson-jaxrs-json-provider 2.6.2
+* jersey-json 1.19
+* jersey-guice 1.19
+* jersey-grizzly2 1.19
+* servlet-api 2.5
+* guice 3.0
+* guava 18.0
+* junit 4.12
 
 ##Usage
 There are only four classes (and one main class) that need to be implemented to see everything in action:
