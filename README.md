@@ -143,7 +143,6 @@ Let's see it in action:
 ```
 user@vm:~$ curl -X GET "http://localhost:5555/my-resource/1
 ```
-`stdout`
 ```
 Sep 28, 2015 8:40:42 PM com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory register
 INFO: Registering example.MyResource as a root resource class
