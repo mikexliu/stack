@@ -175,13 +175,16 @@ Let's see it in action:
 ```
 user@vm:~$ curl -X POST "http://localhost:5555/my-resource/" -d "{\"data\":\"data\"}" --header 'Content-Type: application/json'
 1f1dd3af-2a6c-4b54-bcf6-f125d3fada65
-
+```
+```
 user@vm:~$ curl -X GET "http://localhost:5555/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65"
 {"_id":"1f1dd3af-2a6c-4b54-bcf6-f125d3fada65","data":"data"}
-
+```
+```
 curl -X PUT "http://localhost:5555/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65" -d "{\"data\": \"data2\"}" --header 'Content-Type: application/json'
 {"_id":"1f1dd3af-2a6c-4b54-bcf6-f125d3fada65","data":"data2"}
-
+```
+```
 curl -X DELETE "http://localhost:5555/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65"
 curl -X GET "http://localhost:5555/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65" -I
 HTTP/1.1 204 No Content
