@@ -18,8 +18,20 @@ public interface MyInterface {
 }
 ```
 
-Define the `resource`. The class should be `abstract` since the only important things to focus on are the `annotations`. It follows the `jax-rs` specifications and implements the `interface` defined.
+Define the `resource`. The class should be `abstract` since the only important things to focus on are the `annotations`. It follows the `jax-rs` specifications and implements the `interface` defined. Note that it must extend `Resource`.
 ```java
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+import resources.Resource;
+
 @Path("/my-resource")
 public abstract class MyResource extends Resource implements MyInterface {
 
@@ -48,7 +60,7 @@ public abstract class MyResource extends Resource implements MyInterface {
 }
 ```
 
-Define the `container`. This is where the `application` lies. It also implements the `interface` defined.
+Define the `container`. This is where the `application` lies. It also implements the `interface` defined. Note that it must extended `Container`.
 ```java
 import resources.Container;
 
