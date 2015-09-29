@@ -128,7 +128,6 @@ public class Main {
 ```
 
 Let's see it in action:
-`curl`
 ```
 user@vm:~$ curl -X GET "http://localhost:5555/my-resource/1
 ```
