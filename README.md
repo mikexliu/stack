@@ -6,7 +6,6 @@ Provide an extremely easy-to-setup REST endpoint. Many libraries stress separati
 * javassist: 3.12.1.GA
 * guice: 3.0
 * jersey: 1.19
-* swagger: 1.5.3-M1 [unused]
 * junit: 4.12 [unused]
 
 ##Usage
@@ -167,3 +166,8 @@ INFO: [HttpServer] Started.
 Press any key to exit...
 read 1
 ```
+
+#Extra Goodies
+* `server` ready for use (not optimized)
+* `swagger` not implemented
+* `persistence` not implemented
