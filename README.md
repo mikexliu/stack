@@ -5,7 +5,7 @@ Provide an extremely easy-to-setup REST endpoint. Many libraries stress separati
 ##Usage
 There are only four classes (and one main class) that need to be implemented to see everything in action:
 
-Define the interface. This is the interface that is shared between the endpoint and implementation.
+Define the `interface`. This is the interface that is shared between the `resource` and the `container`.
 ```java
 public interface MyInterface {
     public void create(final MyItem item);
@@ -18,7 +18,7 @@ public interface MyInterface {
 }
 ```
 
-Define the resource. This follows the jax-rs specifications and implements the interface defined.
+Define the `resource`. The class should be `abstract` since the only important things to focus on are the `annotations`. It follows the `jax-rs` specifications and implements the `interface` defined.
 ```java
 @Path("/my-resource")
 public abstract class MyResource extends Resource implements MyInterface {
@@ -48,7 +48,7 @@ public abstract class MyResource extends Resource implements MyInterface {
 }
 ```
 
-Define the container. This is the implementation of the actual application and also implements the interface defined.
+Define the `container`. This is where the `application` lies. It also implements the `interface` defined.
 ```java
 import resources.Container;
 
@@ -78,7 +78,7 @@ public final class MyContainer extends Container implements MyInterface {
 }
 ```
 
-Define the module. This is the piece that glues the Resource to the Container.
+Define the `module`. This is the piece that glues the `resource` to the `container`.
 ```java
 import inject.Module;
 import web.SwaggerModule;
@@ -96,7 +96,7 @@ public class MyModule extends Module<MyResource, MyContainer> {
 }
 ```
 
-Finally, start up the application.
+Finally, start up the `application`.
 ```java
 import java.io.IOException;
 import java.net.URI;
@@ -127,4 +127,26 @@ public class Main {
 }
 ```
 
-Done!
+Let's see it in action:
+`curl`
+```
+user@vm:~$ curl -X GET "http://localhost:5555/my-resource/1
+```
+`stdout`
+```
+Sep 28, 2015 8:40:42 PM com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory register
+INFO: Registering example.MyResource as a root resource class
+Sep 28, 2015 8:40:42 PM com.sun.jersey.server.impl.application.WebApplicationImpl _initiate
+INFO: Initiating Jersey application, version 'Jersey: 1.19 02/11/2015 03:25 AM'
+Sep 28, 2015 8:40:43 PM com.sun.jersey.guice.spi.container.GuiceComponentProviderFactory getComponentProvider
+INFO: Binding example.MyResource to GuiceManagedComponentProvider with the scope "Singleton"
+Sep 28, 2015 8:40:43 PM com.sun.jersey.spi.inject.Errors processErrorMessages
+WARNING: The following warnings have been detected with resource and/or provider classes:
+  WARNING: A sub-resource method, public abstract void example.MyResource.create(example.MyItem), with URI template, "/", is treated as a resource method
+Sep 28, 2015 8:40:43 PM org.glassfish.grizzly.http.server.NetworkListener start
+INFO: Started listener bound to [localhost:5555]
+Sep 28, 2015 8:40:43 PM org.glassfish.grizzly.http.server.HttpServer start
+INFO: [HttpServer] Started.
+Press any key to exit...
+read 1
+```
