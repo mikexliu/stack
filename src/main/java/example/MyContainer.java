@@ -2,7 +2,7 @@ package example;
 
 import resources.Container;
 
-public final class MyContainer extends Container implements MyBindings {
+public final class MyContainer extends Container implements MyInterface {
 
     @Override
     public void create(final MyItem item) {
@@ -24,9 +24,5 @@ public final class MyContainer extends Container implements MyBindings {
     @Override
     public void delete(final String _id) {
         System.out.println("delete " + _id);
-    }
-
-    public String call() {
-        return "call";
     }
 }

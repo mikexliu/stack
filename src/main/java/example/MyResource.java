@@ -13,11 +13,7 @@ import javax.ws.rs.core.MediaType;
 import resources.Resource;
 
 @Path("/my-resource")
-public abstract class MyResource extends Resource implements MyBindings {
-
-    @GET
-    @Path("/call")
-    public abstract String call();
+public abstract class MyResource extends Resource implements MyInterface {
 
     @Override
     @POST

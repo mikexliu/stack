@@ -1,19 +1,15 @@
 package example;
 
-import com.google.inject.servlet.ServletModule;
-
 import inject.Module;
 import web.SwaggerModule;
 
-public class MyModule extends Module<MyResource, MyContainer> {
+import com.google.inject.servlet.ServletModule;
 
-    public MyModule() {
-        super(MyResource.class, MyContainer.class, MyBindings.class);
-    }
+public class MyModule extends Module<MyResource, MyContainer> {
 
     @Override
     protected void configure() {
-        super.configure();
+        bindResourceToContainer(MyResource.class, MyContainer.class);
 
         install(new ServletModule());
         install(new SwaggerModule());

@@ -4,10 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Map;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
-import com.google.inject.AbstractModule;
+import java.util.Set;
 
 import javassist.Modifier;
 import javassist.util.proxy.MethodFilter;
@@ -16,38 +13,45 @@ import javassist.util.proxy.ProxyFactory;
 import resources.Container;
 import resources.Resource;
 
-public class Module<R extends Resource, C extends Container> extends AbstractModule {
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.inject.AbstractModule;
 
-    private final Class<R> resource;
-    private final Class<C> container;
-    private final Map<Method, Method> resourceToContainer;
+public abstract class Module<R extends Resource, C extends Container> extends AbstractModule {
 
-    public Module(final Class<R> resource, final Class<C> container, final Class<?> bindings) {
-        Preconditions.checkArgument(Modifier.isFinal(container.getModifiers()),
-                container + " must be declared as final");
-        Preconditions.checkArgument(bindings.isInterface(), bindings + " must be an interface");
-        Preconditions.checkArgument(bindings.isAssignableFrom(resource), resource + " must implement " + bindings);
-        Preconditions.checkArgument(bindings.isAssignableFrom(container), container + " must implement " + bindings);
+    private Class<R> resource;
+    private Class<C> container;
+    private Map<Method, Method> resourceToContainer;
 
-        // TODO: remove bindings from the constructor; automatically find the
-        // interface shared between resource and container
-        // container.getInterfaces()
+    /**
+     * Given a Resource class, binds all common interfaces to the Container
+     * class.
+     * 
+     * @param resource
+     * @param container
+     */
+    protected final void bindResourceToContainer(final Class<R> resource, final Class<C> container) {
+        Preconditions.checkArgument(Modifier.isFinal(container.getModifiers()), container
+                + " must be declared as final");
 
         this.resource = resource;
         this.container = container;
         this.resourceToContainer = Maps.newHashMap();
 
-        for (final Method method : bindings.getMethods()) {
+        final Set<Class<?>> resourceInterfaces = Sets.newHashSet(this.resource.getInterfaces());
+        final Set<Class<?>> containerInterfaces = Sets.newHashSet(this.container.getInterfaces());
+        final Set<Method> intersectingInterfaces = Sets.newHashSet();
+        for (final Class<?> intersectingInterface : Sets.intersection(resourceInterfaces, containerInterfaces)) {
+            intersectingInterfaces.addAll(Sets.newHashSet(intersectingInterface.getMethods()));
+        }
+
+        for (final Method method : intersectingInterfaces) {
             final Method resourceMethod = findMatchingMethod(this.resource, method);
             final Method containerMethod = findMatchingMethod(this.container, method);
-            Preconditions.checkArgument(resourceMethod != null, this.resource + " did not implement " + method);
-            Preconditions.checkArgument(containerMethod != null, this.container + " did not implement " + method);
             this.resourceToContainer.put(resourceMethod, containerMethod);
         }
-    }
 
-    @Override
-    protected void configure() {
         bindResource(bindContainer());
     }
 
@@ -101,7 +105,12 @@ public class Module<R extends Resource, C extends Container> extends AbstractMod
             @Override
             public Object invoke(Object b, Method thisMethod, Method proceed, Object[] args) throws Throwable {
                 final Method containerMethod = resourceToContainer.get(thisMethod);
-                return containerMethod.invoke(containerInstance, args);
+                if (containerMethod != null) {
+                    return containerMethod.invoke(containerInstance, args);
+                } else {
+                    throw new IllegalAccessException(thisMethod + " is not implemented in "
+                            + containerInstance.getClass() + " via interface");
+                }
             }
         };
 
