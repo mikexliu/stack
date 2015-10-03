@@ -21,6 +21,7 @@ Define the `interface`. This is the interface that is shared between the `resour
 import javax.ws.rs.core.Response;
 
 public interface MyInterface {
+
     public String create(final MyItem item);
 
     public MyItem read(final String _id);
@@ -31,7 +32,7 @@ public interface MyInterface {
 }
 ```
 
-Define the `resource`. The class should be `abstract` as only the `annotations` are used. It follows the `jax-rs` specifications and implements the `interface` defined. Note that it must extend `Resource`.
+Define the `resource`. The class should be `abstract` as only the `annotations` are used. It follows the `jax-rs` specifications and implements the `interface` defined.
 ```java
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -44,10 +45,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import resources.Resource;
-
 @Path("/my-resource")
-public abstract class MyResource extends Resource implements MyInterface {
+public abstract class MyResource implements MyInterface {
 
     @Override
     @POST
@@ -75,7 +74,7 @@ public abstract class MyResource extends Resource implements MyInterface {
 
 ```
 
-Define the `container`. This is where the `application` lies. It also implements the `interface` defined. Note that it must extended `Container`.
+Define the `container`. This is where the `application` lies. It also implements the `interface` defined.
 ```java
 import java.util.Map;
 import java.util.UUID;
@@ -83,11 +82,9 @@ import java.util.UUID;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import resources.Container;
-
 import com.google.common.collect.Maps;
 
-public final class MyContainer extends Container implements MyInterface {
+public final class MyContainer implements MyInterface {
 
     private Map<String, MyItem> items = Maps.newHashMap();
 
@@ -125,7 +122,6 @@ public final class MyContainer extends Container implements MyInterface {
 Define the `module`. This is the piece that glues the `resource` to the `container`.
 ```java
 import inject.Module;
-import web.SwaggerModule;
 
 import com.google.inject.servlet.ServletModule;
 
