@@ -4,10 +4,10 @@ import java.net.URI;
 
 import org.glassfish.grizzly.http.server.HttpServer;
 
-import web.ServerBuilder;
-
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
+import web.ServerBuilder;
 
 public class Main {
     public static void main(String[] args) throws Exception {

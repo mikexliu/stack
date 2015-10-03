@@ -11,14 +11,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import resources.Resource;
-
 @Path("/my-resource")
-public abstract class MyResource extends Resource implements MyInterface {
+public abstract class MyResource implements MyInterface {
 
     @Override
     @POST
-    @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)
     public abstract String create(final MyItem item);
 

@@ -6,34 +6,32 @@ import java.lang.reflect.Parameter;
 import java.util.Map;
 import java.util.Set;
 
-import javassist.Modifier;
-import javassist.util.proxy.MethodFilter;
-import javassist.util.proxy.MethodHandler;
-import javassist.util.proxy.ProxyFactory;
-import resources.Container;
-import resources.Resource;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.AbstractModule;
 
-public abstract class Module<R extends Resource, C extends Container> extends AbstractModule {
+import javassist.Modifier;
+import javassist.util.proxy.MethodFilter;
+import javassist.util.proxy.MethodHandler;
+import javassist.util.proxy.ProxyFactory;
+
+public abstract class Module<R extends Object, C extends Object> extends AbstractModule {
 
     private Class<R> resource;
     private Class<C> container;
     private Map<Method, Method> resourceToContainer;
 
     /**
-     * Given a Resource class, binds all common interfaces to the Container
-     * class.
+     * Given a Resource class, binds all common interfaces to the Container.
+     * This will make both resource and containers Singletons. class.
      * 
      * @param resource
      * @param container
      */
     protected final void bindResourceToContainer(final Class<R> resource, final Class<C> container) {
-        Preconditions.checkArgument(Modifier.isFinal(container.getModifiers()), container
-                + " must be declared as final");
+        Preconditions.checkArgument(Modifier.isFinal(container.getModifiers()),
+                container + " must be declared as final");
 
         this.resource = resource;
         this.container = container;
@@ -108,8 +106,8 @@ public abstract class Module<R extends Resource, C extends Container> extends Ab
                 if (containerMethod != null) {
                     return containerMethod.invoke(containerInstance, args);
                 } else {
-                    throw new IllegalAccessException(thisMethod + " is not implemented in "
-                            + containerInstance.getClass() + " via interface");
+                    throw new IllegalAccessException(
+                            thisMethod + " is not implemented in " + containerInstance.getClass() + " via interface");
                 }
             }
         };

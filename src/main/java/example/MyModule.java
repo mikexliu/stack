@@ -1,9 +1,9 @@
 package example;
 
+import com.google.inject.servlet.ServletModule;
+
 import inject.Module;
 import web.SwaggerModule;
-
-import com.google.inject.servlet.ServletModule;
 
 public class MyModule extends Module<MyResource, MyContainer> {
 

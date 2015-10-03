@@ -3,6 +3,7 @@ package example;
 import javax.ws.rs.core.Response;
 
 public interface MyInterface {
+
     public String create(final MyItem item);
 
     public MyItem read(final String _id);

@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Set;
 
-import org.glassfish.grizzly.http.server.HttpServer;
+import javax.ws.rs.Path;
 
-import resources.Resource;
+import org.glassfish.grizzly.http.server.HttpServer;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
@@ -42,7 +42,7 @@ public class ServerBuilder {
         final Set<Class<?>> resources = Sets.newHashSet();
         for (final Key<?> key : keys) {
             final Class<?> classType = key.getTypeLiteral().getRawType();
-            if (classType.isAssignableFrom(Resource.class)) {
+            if (classType.isAnnotationPresent(Path.class)) {
                 resources.add(classType);
             }
         }
