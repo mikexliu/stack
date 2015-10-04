@@ -52,8 +52,10 @@ public class ServerBuilder {
         final IoCComponentProviderFactory ioc = new GuiceComponentProviderFactory(rc, injector);
 
         try {
-            return GrizzlyServerFactory.createHttpServer(
+            final HttpServer server = GrizzlyServerFactory.createHttpServer(
                     String.format("%s://%s:%d", endpoint.getScheme(), endpoint.getHost(), endpoint.getPort()), rc, ioc);
+
+            return server;
         } catch (IllegalArgumentException | NullPointerException | IOException e) {
             throw new RuntimeException("Failed to create HttpServer", e);
         }

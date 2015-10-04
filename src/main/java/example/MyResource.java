@@ -11,9 +11,19 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Path("/my-resource")
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+
+@Api(value = "test test")
+@Path("/api/my-resource")
 public abstract class MyResource implements MyInterface {
 
+    @ApiOperation(value = "create", notes = "create!")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 500, message = "Something wrong in Server")})
     @Override
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
