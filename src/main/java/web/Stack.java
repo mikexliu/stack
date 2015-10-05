@@ -1,5 +1,7 @@
 package web;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Properties;
@@ -35,22 +37,27 @@ import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
 
-public class ServerBuilder {
+public class Stack {
 
-    private int port;
-    private Injector injector;
+    private final Properties properties;
+    private final Injector injector;
 
-    public ServerBuilder withPort(final int port) {
-        this.port = port;
-        return this;
+    private final Server server;
+
+    public Stack(final Injector injector) {
+        try {
+            this.properties = new Properties();
+            this.properties.load(ClassLoader.getSystemResourceAsStream("stack.properties"));
+
+            this.injector = injector;
+
+            this.server = new Server(Integer.parseInt(this.properties.getProperty("port")));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public ServerBuilder withInjector(final Injector injector) {
-        this.injector = injector;
-        return this;
-    }
-
-    public Server build() {
+    public void start() {
         try {
             // Workaround for resources from JAR files
             Resource.setDefaultUseCaches(false);
@@ -61,16 +68,23 @@ public class ServerBuilder {
             handlers.addHandler(buildSwaggerUI());
             handlers.addHandler(buildContext());
 
-            final Server server = new Server(port);
             server.setHandler(handlers);
-            return server;
+            server.start();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void stop() {
+        try {
+            server.stop();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     private Set<Class<?>> getResources() {
-        final Set<Key<?>> keys = this.injector.getAllBindings().keySet();
+        final Set<Key<?>> keys = injector.getAllBindings().keySet();
         final Set<Class<?>> resources = Sets.newHashSet();
         for (final Key<?> key : keys) {
             final Class<?> classType = key.getTypeLiteral().getRawType();
@@ -83,13 +97,13 @@ public class ServerBuilder {
 
     private void buildSwagger() {
         final BeanConfig beanConfig = new BeanConfig();
-        beanConfig.setVersion("1.0.0");
+        beanConfig.setVersion(properties.getProperty("version"));
         beanConfig.setResourcePackage(Joiner.on(",").join(
                 getResources().stream().map(Class::getPackage).map(Package::getName).collect(Collectors.toSet())));
         beanConfig.setScan(true);
         beanConfig.setBasePath("/");
-        beanConfig.setDescription("Swagger");
-        beanConfig.setTitle("Swagger");
+        beanConfig.setTitle(properties.getProperty("swagger.title"));
+        beanConfig.setDescription(properties.getProperty("swagger.description"));
     }
 
     private ContextHandler buildContext() {
@@ -114,9 +128,10 @@ public class ServerBuilder {
                 serve("/*").with(GuiceContainer.class, parameters);
             }
         });
-        
+
         FilterHolder guiceFilter = new FilterHolder(childInjector.getInstance(GuiceFilter.class));
-        servletContextHandler.addFilter(guiceFilter, "/api/*", EnumSet.allOf(DispatcherType.class));
+        servletContextHandler.addFilter(guiceFilter, String.format("/%s/*", properties.getProperty("api.prefix")),
+                EnumSet.allOf(DispatcherType.class));
         servletContextHandler.addServlet(DefaultServlet.class, "/");
         servletContextHandler.addEventListener(new GuiceServletContextListener() {
             @Override
@@ -128,12 +143,12 @@ public class ServerBuilder {
         return servletContextHandler;
     }
 
-    private ContextHandler buildSwaggerUI() throws Exception {
+    private ContextHandler buildSwaggerUI() throws URISyntaxException {
         final ResourceHandler swaggerUIResourceHandler = new ResourceHandler();
-        swaggerUIResourceHandler
-                .setResourceBase(getClass().getClassLoader().getResource("swagger-ui").toURI().toString());
+        swaggerUIResourceHandler.setResourceBase(getClass().getClassLoader()
+                .getResource(properties.getProperty("swagger.dist.folder")).toURI().toString());
         final ContextHandler swaggerUIContext = new ContextHandler();
-        swaggerUIContext.setContextPath("/docs/");
+        swaggerUIContext.setContextPath(String.format("/%s/", properties.getProperty("docs.prefix")));
         swaggerUIContext.setHandler(swaggerUIResourceHandler);
 
         return swaggerUIContext;
