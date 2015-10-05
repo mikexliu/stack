@@ -201,3 +201,11 @@ If you use the built-in Stack class to start up the application, then we can als
 * `server` ready for use (not optimized)
 * `swagger` ready for use (not optimized)
 * `persistence` not implemented
+* `authentication` not implemented
+
+#Future
+* clean up of modules
+* seperate resource paths from swagger paths
+* separate swagger code from stack
+* auto find resources
+* auto filter guice resources better
