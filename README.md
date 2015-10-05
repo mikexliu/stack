@@ -1,6 +1,10 @@
 #stack
 ##Introduction
-Provide an extremely easy-to-setup REST endpoint.
+Build your own REST endpoint right out of the box without worrying about how it's wired together. Takes advantage of the following libraries (everything is optional to use exception jersey):
+* `jersey` rest annotations
+* `jetty` simple but powerful webserver that is pre-configured to work with `swagger`
+* `swagger-ui` self document your apis and have a clean interface to using them
+* `guice` dependency injection
 
 ##Usage
 There are only four classes (and one main class) that need to be implemented to see everything in action:
