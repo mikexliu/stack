@@ -1,23 +1,14 @@
 #stack
 ##Introduction
-Provide an extremely easy-to-setup REST endpoint. Many libraries stress separation of concerns and modular code but very few end up actually being implemented correctly. With `stack`, not only will your project be modular, it will come naturally with Java's coding style.
-
-##Dependencies
-* javassist 3.12.1.GA
-* jackson-jaxrs-json-provider 2.6.2
-* jersey-json 1.19
-* jersey-guice 1.19
-* jersey-grizzly2 1.19
-* servlet-api 2.5
-* guice 3.0
-* guava 18.0
-* junit 4.12
+Provide an extremely easy-to-setup REST endpoint.
 
 ##Usage
 There are only four classes (and one main class) that need to be implemented to see everything in action:
 
 Define the `interface`. This is the interface that is shared between the `resource` and the `container`.
 ```java
+package example;
+
 import javax.ws.rs.core.Response;
 
 public interface MyInterface {
@@ -34,6 +25,8 @@ public interface MyInterface {
 
 Define the `resource`. The class should be `abstract` as only the `annotations` are used. It follows the `jax-rs` specifications and implements the `interface` defined.
 ```java
+package example;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -45,40 +38,50 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Path("/my-resource")
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
+@Api(value = "my-resource")
+@Path("/api/my-resource")
 public abstract class MyResource implements MyInterface {
 
+    @ApiOperation(value = "create", notes = "Creates and returns the id of a JSON representation of MyItem.")
     @Override
     @POST
-    @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
     public abstract String create(final MyItem item);
 
+    @ApiOperation(value = "read", notes = "Returns a JSON representation of the specified MyItem.")
     @Override
     @GET
     @Path("/{_id}")
     @Produces(MediaType.APPLICATION_JSON)
     public abstract MyItem read(@PathParam("_id") final String _id);
 
+    @ApiOperation(value = "update", notes = "Updates the specified MyItem with a new JSON representation.")
     @Override
     @PUT
     @Path("/{_id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public abstract Response update(@PathParam("_id") final String _id, final MyItem item);
 
+    @ApiOperation(value = "delete", notes = "Deletes the specified MyItem.")
     @Override
     @DELETE
     @Path("/{_id}")
     public abstract Response delete(@PathParam("_id") final String _id);
 }
-
 ```
 
 Define the `container`. This is where the `application` lies. It also implements the `interface` defined.
 ```java
+package example;
+
 import java.util.Map;
 import java.util.UUID;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -88,6 +91,9 @@ public final class MyContainer implements MyInterface {
 
     private Map<String, MyItem> items = Maps.newHashMap();
 
+    /**
+     * Create an MyItem object
+     */
     @Override
     public String create(final MyItem item) {
         item._id = UUID.randomUUID().toString();
@@ -95,22 +101,34 @@ public final class MyContainer implements MyInterface {
         return item._id;
     }
 
+    /**
+     * If the item to update does not exist, returns 204
+     * Otherwise, returns the object
+     * 
+     * This shows we can return non-Response, non-String objects.
+     */
     @Override
     public MyItem read(final String _id) {
         return items.get(_id);
     }
 
+    /**
+     * If the item to update does not exist, return 404
+     */
     @Override
     public Response update(final String _id, final MyItem item) {
         if (!items.containsKey(_id)) {
-            return Response.status(Status.NO_CONTENT).build();
-        } else {
-            item._id = _id;
-            items.put(_id, item);
-            return Response.ok().build();
+            return Response.status(Status.NOT_FOUND).build();
         }
+
+        item._id = _id;
+        items.put(_id, item);
+        return Response.ok(item, MediaType.APPLICATION_JSON).build();
     }
 
+    /**
+     * This is successful even if no item exists
+     */
     @Override
     public Response delete(final String _id) {
         items.remove(_id);
@@ -121,74 +139,65 @@ public final class MyContainer implements MyInterface {
 
 Define the `module`. This is the piece that glues the `resource` to the `container`.
 ```java
-import inject.Module;
+package example;
 
-import com.google.inject.servlet.ServletModule;
+import inject.StackModule;
 
-public class MyModule extends Module<MyResource, MyContainer> {
+public class MyModule extends StackModule<MyResource, MyContainer> {
 
     @Override
     protected void configure() {
         bindResourceToContainer(MyResource.class, MyContainer.class);
-
-        install(new ServletModule());
     }
 }
 ```
 
 Finally, start up the `application`.
 ```java
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import org.glassfish.grizzly.http.server.HttpServer;
-
-import web.ServerBuilder;
+package example;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import web.Stack;
+
 public class Main {
-    public static void main(String[] args) throws IllegalArgumentException, IOException, URISyntaxException {
+    
+    public static void main(String[] args) {
 
         final MyModule myModule = new MyModule();
         final Injector injector = Guice.createInjector(myModule);
 
-        final HttpServer server = new ServerBuilder()
-                .withEndpoint(new URI("http://localhost:5555"))
-                .withInjector(injector)
-                .build();
-
-        server.start();
-        System.out.println("Press any key to exit...");
-        System.in.read();
+        new Stack(injector).start();
     }
 }
 ```
 
 Let's see it in action:
 ```
-user@vm:~$ curl -X POST "http://localhost:5555/my-resource/" -d "{\"data\":\"data\"}" --header 'Content-Type: application/json'
+user@vm:~$ curl -X POST "http://localhost:5555/api/my-resource/" -d "{\"data\":\"data\"}" --header 'Content-Type: application/json'
 1f1dd3af-2a6c-4b54-bcf6-f125d3fada65
 ```
 ```
-user@vm:~$ curl -X GET "http://localhost:5555/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65"
+user@vm:~$ curl -X GET "http://localhost:5555/api/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65"
 {"_id":"1f1dd3af-2a6c-4b54-bcf6-f125d3fada65","data":"data"}
 ```
 ```
-curl -X PUT "http://localhost:5555/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65" -d "{\"data\": \"data2\"}" --header 'Content-Type: application/json'
+curl -X PUT "http://localhost:5555/api/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65" -d "{\"data\": \"data2\"}" --header 'Content-Type: application/json'
 {"_id":"1f1dd3af-2a6c-4b54-bcf6-f125d3fada65","data":"data2"}
 ```
 ```
-curl -X DELETE "http://localhost:5555/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65"
-curl -X GET "http://localhost:5555/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65" -I
+curl -X DELETE "http://localhost:5555/api/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65"
+curl -X GET "http://localhost:5555/api/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65" -I
 HTTP/1.1 204 No Content
 Content-Type: application/json
 Date: Tue, 29 Sep 2015 05:43:26 GMT
 ```
 
+##Swagger
+If you use the built-in Stack class to start up the application, then we can also take advantage of `swagger`. Navigate to `http://localhost:5555/swagger.json/` to see the swagger representation. `swagger-ui` is also already configured for you at `http://localhost:5555/docs`.
+
 #Extra Goodies
 * `server` ready for use (not optimized)
-* `swagger` not implemented
+* `swagger` ready for use (not optimized)
 * `persistence` not implemented
