@@ -15,7 +15,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 @Api(value = "my-resource")
-@Path("/my-resource")
+@Path("/api/my-resource")
 public abstract class MyResource implements MyInterface {
 
     @ApiOperation(value = "create", notes = "Creates and returns the id of a JSON representation of MyItem.")

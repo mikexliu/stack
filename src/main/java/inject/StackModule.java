@@ -16,7 +16,23 @@ import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 
-public abstract class Module<R extends Object, C extends Object> extends AbstractModule {
+/**
+ * Used to bind a Resource to a Container. Only one Resource and Container can
+ * be used per StackModule so having multiple end-points will require multiple
+ * instances of StackModule.
+ * 
+ * The canonical use case is calling bindResourceToContainer(resource,
+ * container) inside of configure().
+ * 
+ * TODO: should be in the constructor but creates a NPE so this is a work around
+ * for now.
+ * 
+ * @param <R>
+ *            Resource
+ * @param <C>
+ *            Container
+ */
+public abstract class StackModule<R extends Object, C extends Object> extends AbstractModule {
 
     private Class<R> resource;
     private Class<C> container;

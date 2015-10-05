@@ -1,8 +1,8 @@
 package web;
 
-import java.net.URI;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -37,11 +37,11 @@ import io.swagger.jaxrs.listing.ApiListingResource;
 
 public class ServerBuilder {
 
-    private URI endpoint;
+    private int port;
     private Injector injector;
 
-    public ServerBuilder withResourceEndpoint(final URI endpoint) {
-        this.endpoint = endpoint;
+    public ServerBuilder withPort(final int port) {
+        this.port = port;
         return this;
     }
 
@@ -61,7 +61,7 @@ public class ServerBuilder {
             handlers.addHandler(buildSwaggerUI());
             handlers.addHandler(buildContext());
 
-            final Server server = new Server(endpoint.getPort());
+            final Server server = new Server(port);
             server.setHandler(handlers);
             return server;
         } catch (Exception e) {
