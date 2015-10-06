@@ -2,7 +2,7 @@ package example;
 
 import inject.StackModule;
 
-public class MyModule extends StackModule<MyResource, MyContainer> {
+public class MyModule extends StackModule {
 
     @Override
     protected void configure() {

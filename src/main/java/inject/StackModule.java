@@ -6,15 +6,15 @@ import java.lang.reflect.Parameter;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.inject.AbstractModule;
-
 import javassist.Modifier;
 import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.inject.AbstractModule;
 
 /**
  * Used to bind a Resource to a Container. Only one Resource and Container can
@@ -32,10 +32,12 @@ import javassist.util.proxy.ProxyFactory;
  * @param <C>
  *            Container
  */
-public abstract class StackModule<R extends Object, C extends Object> extends AbstractModule {
+public abstract class StackModule extends AbstractModule {
 
-    private Class<R> resource;
-    private Class<C> container;
+    @SuppressWarnings("rawtypes")
+    private Class resource;
+    @SuppressWarnings("rawtypes")
+    private Class container;
     private Map<Method, Method> resourceToContainer;
 
     /**
@@ -45,7 +47,7 @@ public abstract class StackModule<R extends Object, C extends Object> extends Ab
      * @param resource
      * @param container
      */
-    protected final void bindResourceToContainer(final Class<R> resource, final Class<C> container) {
+    protected final void bindResourceToContainer(final Class<?> resource, final Class<?> container) {
         Preconditions.checkArgument(Modifier.isFinal(container.getModifiers()),
                 container + " must be declared as final");
 
@@ -95,17 +97,20 @@ public abstract class StackModule<R extends Object, C extends Object> extends Ab
         }
     }
 
-    private final C bindContainer() {
+    @SuppressWarnings("unchecked")
+    private final Object bindContainer() {
         try {
-            final C containerInstance = container.newInstance();
-            bind(container).toInstance(containerInstance);
+            final Object containerInstance = container.newInstance();
+            bind(container).toInstance(container.cast(containerInstance));
+            
             return containerInstance;
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private final R bindResource(final C containerInstance) {
+    @SuppressWarnings("unchecked")
+    private final Object bindResource(final Object containerInstance) {
         final ProxyFactory factory = new ProxyFactory();
         factory.setSuperclass(resource);
         factory.setFilter(new MethodFilter() {
@@ -129,8 +134,8 @@ public abstract class StackModule<R extends Object, C extends Object> extends Ab
         };
 
         try {
-            final R resourceInstance = resource.cast(factory.create(new Class<?>[0], new Object[0], handler));
-            bind(resource).toInstance(resourceInstance);
+            final Object resourceInstance = resource.cast(factory.create(new Class<?>[0], new Object[0], handler));
+            bind(resource).toInstance(resource.cast(resourceInstance));
             return resourceInstance;
         } catch (NoSuchMethodException | IllegalArgumentException | InstantiationException | IllegalAccessException
                 | InvocationTargetException e) {
