@@ -47,7 +47,7 @@ public class Stack {
     public Stack(final Injector injector) {
         try {
             this.properties = new Properties();
-            this.properties.load(ClassLoader.getSystemResourceAsStream("stack.properties"));
+            this.properties.load(getClass().getResourceAsStream("/stack.properties"));
 
             this.injector = injector;
 

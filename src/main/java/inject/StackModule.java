@@ -27,10 +27,8 @@ import com.google.inject.AbstractModule;
  * TODO: should be in the constructor but creates a NPE so this is a work around
  * for now.
  * 
- * @param <R>
- *            Resource
- * @param <C>
- *            Container
+ * @param <?> Resource
+ * @param <?> Container
  */
 public abstract class StackModule extends AbstractModule {
 
@@ -48,8 +46,8 @@ public abstract class StackModule extends AbstractModule {
      * @param container
      */
     protected final void bindResourceToContainer(final Class<?> resource, final Class<?> container) {
-        Preconditions.checkArgument(Modifier.isFinal(container.getModifiers()),
-                container + " must be declared as final");
+        Preconditions.checkArgument(Modifier.isFinal(container.getModifiers()), container
+                + " must be declared as final");
 
         this.resource = resource;
         this.container = container;
@@ -102,7 +100,7 @@ public abstract class StackModule extends AbstractModule {
         try {
             final Object containerInstance = container.newInstance();
             bind(container).toInstance(container.cast(containerInstance));
-            
+
             return containerInstance;
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
@@ -127,8 +125,8 @@ public abstract class StackModule extends AbstractModule {
                 if (containerMethod != null) {
                     return containerMethod.invoke(containerInstance, args);
                 } else {
-                    throw new IllegalAccessException(
-                            thisMethod + " is not implemented in " + containerInstance.getClass() + " via interface");
+                    throw new IllegalAccessException(thisMethod + " is not implemented in "
+                            + containerInstance.getClass() + " via interface");
                 }
             }
         };
