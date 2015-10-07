@@ -221,8 +221,10 @@ If you use the built-in Stack class to start up the application, then we can als
 
 ##Usage
 `git clone https://github.com/mikexliu/stack.git`
+
 `mvn install; mvn exec:java`
-http://localhost:5555/docs should now be accessible with all resources defined.
+
+`http://localhost:5555/docs` should now be accessible with all resources defined.
 
 #Extra Goodies
 * `server` ready for use (not optimized)
