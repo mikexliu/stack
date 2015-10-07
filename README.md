@@ -201,6 +201,11 @@ Date: Tue, 29 Sep 2015 05:43:26 GMT
 ##Swagger
 If you use the built-in Stack class to start up the application, then we can also take advantage of `swagger`. Navigate to `http://localhost:5555/swagger.json/` to see the swagger representation. `swagger-ui` is also already configured for you at `http://localhost:5555/docs`.
 
+##Usage
+`git clone https://github.com/mikexliu/stack.git`
+`mvn install; mvn exec:java`
+http://localhost:5555/docs should now be accessible with all resources defined.
+
 #Extra Goodies
 * `server` ready for use (not optimized)
 * `swagger` ready for use (not optimized)

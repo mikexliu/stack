@@ -6,3 +6,6 @@ target/
 
 # linux
 *~
+
+# project
+var/
