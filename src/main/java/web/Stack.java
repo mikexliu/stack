@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import javax.servlet.DispatcherType;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Scopes;
@@ -49,50 +51,59 @@ public class Stack {
 
     private static final Logger log = LoggerFactory.getLogger(Stack.class);
 
-    private final Properties properties;
-    private final Server server;
+    private static final Properties properties;
 
-    private final Injector injector;
-    private final ResponseThrowableHandler responseThrowableHandler;
+    static {
+        properties = new Properties();
+        try {
+            properties.load(Stack.class.getResourceAsStream("/stack.properties"));
 
-    public Stack(final Injector injector) {
-        this(injector, new ResponseThrowableHandler() {
-
-            @Override
-            public Response handleThrowable(final Throwable throwable) {
-                log.warn("Interanl Server Exception", throwable);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
-        });
+            Resource.setDefaultUseCaches(false);
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to load stack.properties", e);
+        }
     }
 
-    public Stack(final Injector injector, final Stack.ResponseThrowableHandler responseThrowableHandler) {
-        try {
-            // TODO: make this static
-            this.properties = new Properties();
-            this.properties.load(getClass().getResourceAsStream("/stack.properties"));
+    private final Server server;
+    private final Injector injector;
 
-            this.injector = injector;
-            this.responseThrowableHandler = responseThrowableHandler;
+    public Stack(final Injector injector) {
+        final ResponseThrowableHandler responseThrowableHandler;
+        if (injector.getExistingBinding(Key.get(ResponseThrowableHandler.class)) == null) {
+            responseThrowableHandler = new ResponseThrowableHandler() {
 
-            this.server = new Server(Integer.parseInt(this.properties.getProperty("port")));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+                @Override
+                public Response handleThrowable(final Throwable throwable) {
+                    log.warn("Internal Server Exception", throwable);
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).type(MediaType.TEXT_PLAIN).build();
+                }
+            };
+        } else {
+            responseThrowableHandler = injector.getInstance(ResponseThrowableHandler.class);
         }
+
+        this.injector = injector.createChildInjector(new AbstractModule() {
+
+            @Override
+            protected void configure() {
+                bind(ResponseThrowableMapper.class).toInstance(new ResponseThrowableMapper(responseThrowableHandler));
+            }
+
+        });
+
+        this.server = new Server(Integer.parseInt(properties.getProperty("port")));
     }
 
     public void start() {
         try {
-            // Workaround for resources from JAR files
-            Resource.setDefaultUseCaches(false);
             final BeanConfig beanConfig = new BeanConfig();
-            beanConfig.setVersion(properties.getProperty("version"));
+            beanConfig.setVersion(Stack.properties.getProperty("version"));
             beanConfig.setResourcePackage(Joiner.on(",").join(
                     getResources().stream().map(Class::getPackage).map(Package::getName).collect(Collectors.toSet())));
             beanConfig.setScan(true);
             beanConfig.setBasePath("/");
-            beanConfig.setTitle(properties.getProperty("swagger.title"));
-            beanConfig.setDescription(properties.getProperty("swagger.description"));
+            beanConfig.setTitle(Stack.properties.getProperty("swagger.title"));
+            beanConfig.setDescription(Stack.properties.getProperty("swagger.description"));
 
             final HandlerList handlers = new HandlerList();
             handlers.addHandler(buildSwaggerContext());
@@ -141,20 +152,19 @@ public class Stack {
             @Override
             protected void configureServlets() {
                 bind(GuiceContainer.class).in(Scopes.SINGLETON);
-                bind(Stack.ResponseThrowableMapper.class).toInstance(
-                        new Stack.ResponseThrowableMapper(responseThrowableHandler));
 
                 final Map<String, String> parameters = Maps.newHashMap();
-                parameters.put(PackagesResourceConfig.PROPERTY_PACKAGES, Stack.ResponseThrowableMapper.class
-                        .getPackage().getName());
+                parameters.put(PackagesResourceConfig.PROPERTY_PACKAGES, ResponseThrowableMapper.class.getPackage()
+                        .getName());
                 parameters.put(JSONConfiguration.FEATURE_POJO_MAPPING, "true");
                 serve("/*").with(GuiceContainer.class, parameters);
             }
         });
 
         final FilterHolder guiceFilter = new FilterHolder(childInjector.getInstance(GuiceFilter.class));
-        servletContextHandler.addFilter(guiceFilter, String.format("/%s/*", properties.getProperty("api.prefix")),
-                EnumSet.allOf(DispatcherType.class));
+        servletContextHandler
+                .addFilter(guiceFilter, String.format("/%s/*", Stack.properties.getProperty("api.prefix")),
+                        EnumSet.allOf(DispatcherType.class));
         servletContextHandler.addServlet(DefaultServlet.class, "/");
         servletContextHandler.addEventListener(new GuiceServletContextListener() {
             @Override
@@ -169,9 +179,9 @@ public class Stack {
     private ContextHandler buildSwaggerContext() throws URISyntaxException {
         final ResourceHandler swaggerUIResourceHandler = new ResourceHandler();
         swaggerUIResourceHandler.setResourceBase(getClass().getClassLoader()
-                .getResource(properties.getProperty("swagger.dist.folder")).toURI().toString());
+                .getResource(Stack.properties.getProperty("swagger.dist.folder")).toURI().toString());
         final ContextHandler swaggerUIContext = new ContextHandler();
-        swaggerUIContext.setContextPath(String.format("/%s/", properties.getProperty("docs.prefix")));
+        swaggerUIContext.setContextPath(String.format("/%s/", Stack.properties.getProperty("docs.prefix")));
         swaggerUIContext.setHandler(swaggerUIResourceHandler);
 
         return swaggerUIContext;
@@ -180,22 +190,23 @@ public class Stack {
     @Provider
     private static class ResponseThrowableMapper implements ExceptionMapper<Throwable> {
 
-        private final ResponseThrowableHandler jsonThrowableHandler;
+        private final ResponseThrowableHandler responseTHrowableHandler;
 
         public ResponseThrowableMapper(final ResponseThrowableHandler responseThrowableHandler) {
-            this.jsonThrowableHandler = responseThrowableHandler;
+            this.responseTHrowableHandler = responseThrowableHandler;
         }
 
         @Override
         public Response toResponse(final Throwable throwable) {
-            return jsonThrowableHandler.handleThrowable(throwable);
+            return responseTHrowableHandler.handleThrowable(throwable);
         }
     }
-    
+
     /**
-     * Interface to provide a custom exception handler for JsonProcessingExceptions
+     * Interface to provide a custom exception handler for
+     * JsonProcessingExceptions
      */
     public static interface ResponseThrowableHandler {
-        public Response handleThrowable(final Throwable jsonThrowable);
+        public Response handleThrowable(final Throwable throwable);
     }
 }
