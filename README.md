@@ -25,11 +25,15 @@ public interface MyInterface {
 
     public Response delete(final String _id);
 }
+
 ```
 
 Define the `resource`. The class should be `abstract` as only the `annotations` are used. It follows the `jax-rs` specifications and implements the `interface` defined.
 ```java
 package example;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -41,9 +45,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 
 @Api(value = "my-resource")
 @Path("/api/my-resource")
@@ -76,6 +77,7 @@ public abstract class MyResource implements MyInterface {
     @Path("/{_id}")
     public abstract Response delete(@PathParam("_id") final String _id);
 }
+
 ```
 
 Define the `container`. This is where the `application` lies. It also implements the `interface` defined.
@@ -139,6 +141,7 @@ public final class MyContainer implements MyInterface {
         return Response.status(Status.NO_CONTENT).build();
     }
 }
+
 ```
 
 Define the `module`. This is the piece that glues the `resource` to the `container`.
@@ -147,11 +150,25 @@ package example;
 
 import inject.StackModule;
 
-public class MyModule extends StackModule<MyResource, MyContainer> {
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import web.Stack.ResponseThrowableHandler;
+
+public class MyModule extends StackModule {
 
     @Override
     protected void configure() {
         bindResourceToContainer(MyResource.class, MyContainer.class);
+
+        bind(ResponseThrowableHandler.class).toInstance(new ResponseThrowableHandler() {
+
+            @Override
+            public Response handleThrowable(final Throwable throwable) {
+                return Response.status(Status.INTERNAL_SERVER_ERROR).type(MediaType.TEXT_PLAIN).build();
+            }
+        });
     }
 }
 ```
@@ -160,13 +177,13 @@ Finally, start up the `application`.
 ```java
 package example;
 
+import web.Stack;
+
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import web.Stack;
-
 public class Main {
-    
+
     public static void main(String[] args) {
 
         final MyModule myModule = new MyModule();
@@ -175,6 +192,7 @@ public class Main {
         new Stack(injector).start();
     }
 }
+
 ```
 
 Let's see it in action:

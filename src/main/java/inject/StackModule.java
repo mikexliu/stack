@@ -24,9 +24,6 @@ import com.google.inject.AbstractModule;
  * The canonical use case is calling bindResourceToContainer(resource,
  * container) inside of configure().
  * 
- * TODO: should be in the constructor but creates a NPE so this is a work around
- * for now.
- * 
  * @param <?> Resource
  * @param <?> Container
  */
