@@ -219,7 +219,7 @@ Date: Tue, 29 Sep 2015 05:43:26 GMT
 ##Swagger
 If you use the built-in Stack class to start up the application, then we can also take advantage of `swagger`. Navigate to `http://localhost:5555/swagger.json/` to see the swagger representation. `swagger-ui` is also already configured for you at `http://localhost:5555/docs`.
 
-##Usage
+##Example
 `git clone https://github.com/mikexliu/stack.git`
 
 `mvn install; mvn exec:java`
@@ -233,8 +233,7 @@ If you use the built-in Stack class to start up the application, then we can als
 * `authentication` not implemented
 
 #Future
-* clean up of modules
+* clean up of modules (errors defined within containers and global errors can be handled separatly)
 * seperate resource paths from swagger paths
-* separate swagger code from stack
 * auto find resources
 * auto filter guice resources better
