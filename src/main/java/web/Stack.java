@@ -1,8 +1,5 @@
 package web;
 
-import io.swagger.jaxrs.config.BeanConfig;
-import io.swagger.jaxrs.listing.ApiListingResource;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.EnumSet;
@@ -36,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Scopes;
@@ -46,6 +42,9 @@ import com.google.inject.servlet.ServletModule;
 import com.sun.jersey.api.core.PackagesResourceConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
+
+import io.swagger.jaxrs.config.BeanConfig;
+import io.swagger.jaxrs.listing.ApiListingResource;
 
 public class Stack {
 
@@ -67,6 +66,8 @@ public class Stack {
     private final Server server;
     private final Injector injector;
 
+    private final ResponseThrowableHandler responseThrowableHandler;
+    
     public Stack(final Injector injector) {
         this(injector, null);
     }
@@ -81,7 +82,6 @@ public class Stack {
             Stack.properties.putAll(properties);
         }
         
-        final ResponseThrowableHandler responseThrowableHandler;
         if (injector.getExistingBinding(Key.get(ResponseThrowableHandler.class)) == null) {
             responseThrowableHandler = new ResponseThrowableHandler() {
 
@@ -95,16 +95,9 @@ public class Stack {
             responseThrowableHandler = injector.getInstance(ResponseThrowableHandler.class);
         }
 
-        this.injector = injector.createChildInjector(new AbstractModule() {
+        this.injector = injector;
 
-            @Override
-            protected void configure() {
-                bind(ResponseThrowableMapper.class).toInstance(new ResponseThrowableMapper(responseThrowableHandler));
-            }
-
-        });
-
-        this.server = new Server(Integer.parseInt(properties.getProperty("port")));
+        this.server = new Server(Integer.parseInt(Stack.properties.getProperty("port")));
     }
 
     public void start() {
@@ -171,6 +164,8 @@ public class Stack {
                         .getName());
                 parameters.put(JSONConfiguration.FEATURE_POJO_MAPPING, "true");
                 serve("/*").with(GuiceContainer.class, parameters);
+                
+                bind(ResponseThrowableMapper.class).toInstance(new ResponseThrowableMapper(responseThrowableHandler));
             }
         });
 
