@@ -68,6 +68,19 @@ public class Stack {
     private final Injector injector;
 
     public Stack(final Injector injector) {
+        this(injector, null);
+    }
+    
+    /**
+     * 
+     * @param injector
+     * @param properties
+     */
+    public Stack(final Injector injector, final Properties properties) {
+        if (properties != null) {
+            Stack.properties.putAll(properties);
+        }
+        
         final ResponseThrowableHandler responseThrowableHandler;
         if (injector.getExistingBinding(Key.get(ResponseThrowableHandler.class)) == null) {
             responseThrowableHandler = new ResponseThrowableHandler() {
