@@ -79,6 +79,7 @@ public class Stack {
      */
     public Stack(final Injector injector, final Properties properties) {
         if (properties != null) {
+            Stack.properties.clear();
             Stack.properties.putAll(properties);
         }
         
