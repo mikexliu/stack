@@ -3,8 +3,11 @@ package inject;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
+
+import org.slf4j.LoggerFactory;
 
 import javassist.Modifier;
 import javassist.util.proxy.MethodFilter;
@@ -24,8 +27,10 @@ import com.google.inject.AbstractModule;
  * The canonical use case is calling bindResourceToContainer(resource,
  * container) inside of configure().
  * 
- * @param <?> Resource
- * @param <?> Container
+ * @param <?>
+ *            Resource
+ * @param <?>
+ *            Container
  */
 public abstract class StackModule extends AbstractModule {
 
@@ -43,8 +48,8 @@ public abstract class StackModule extends AbstractModule {
      * @param container
      */
     protected final void bindResourceToContainer(final Class<?> resource, final Class<?> container) {
-        Preconditions.checkArgument(Modifier.isFinal(container.getModifiers()), container
-                + " must be declared as final");
+        Preconditions.checkArgument(Modifier.isFinal(container.getModifiers()),
+                container + " must be declared as final");
 
         this.resource = resource;
         this.container = container;
@@ -122,8 +127,8 @@ public abstract class StackModule extends AbstractModule {
                 if (containerMethod != null) {
                     return containerMethod.invoke(containerInstance, args);
                 } else {
-                    throw new IllegalAccessException(thisMethod + " is not implemented in "
-                            + containerInstance.getClass() + " via interface");
+                    throw new IllegalAccessException(
+                            thisMethod + " is not implemented in " + containerInstance.getClass() + " via interface");
                 }
             }
         };
