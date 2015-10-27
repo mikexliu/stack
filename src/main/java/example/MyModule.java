@@ -1,11 +1,10 @@
 package example;
 
-import inject.StackModule;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import inject.StackModule;
 import web.Stack.ResponseThrowableHandler;
 
 public class MyModule extends StackModule {
