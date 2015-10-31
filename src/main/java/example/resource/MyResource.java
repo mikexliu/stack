@@ -20,7 +20,9 @@ import io.swagger.annotations.ApiParam;
 @Path("/api/my-resource")
 public abstract class MyResource {
 
-    @ApiOperation(value = "create", notes = "Creates and returns the id of a JSON representation of MyItem.")
+    @ApiOperation(
+            value = "create",
+            notes = "Creates and returns the id of a JSON representation of MyItem.")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
@@ -28,7 +30,9 @@ public abstract class MyResource {
             @ApiParam("item description")
             final MyItem item);
 
-    @ApiOperation(value = "read", notes = "Returns a JSON representation of the specified MyItem.")
+    @ApiOperation(
+            value = "read",
+            notes = "Returns a JSON representation of the specified MyItem.")
     @GET
     @Path("/{_id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -37,7 +41,9 @@ public abstract class MyResource {
             @PathParam("_id")
             final String _id);
 
-    @ApiOperation(value = "update", notes = "Updates the specified MyItem with a new JSON representation.")
+    @ApiOperation(
+            value = "update",
+            notes = "Updates the specified MyItem with a new JSON representation.")
     @PUT
     @Path("/{_id}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -49,7 +55,9 @@ public abstract class MyResource {
             @ApiParam("item description")
             final MyItem item);
 
-    @ApiOperation(value = "delete", notes = "Deletes the specified MyItem.")
+    @ApiOperation(
+            value = "delete",
+            notes = "Deletes the specified MyItem.")
     @DELETE
     @Path("/{_id}")
     public abstract Response delete(

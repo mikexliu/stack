@@ -58,8 +58,12 @@ import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 
 /**
- * TODO: use swagger-core annotations explicitly
+ * TODO: use swagger-core annotations explicitly (remove BeanConfig and use better scanner)
  * https://github.com/swagger-api/swagger-core/wiki/Annotations-1.5.X#api
+ * 
+ * TODO: remove Server from here, add to constructor
+ * 
+ * TODO: make the ResponseThrowableHandler easier to inject or create
  */
 public class Stack {
 
@@ -107,7 +111,7 @@ public class Stack {
     }
 
     /**
-     * TODO: make the response throwable handler easier to establish
+     * 
      * @param injector
      * @param properties
      */
