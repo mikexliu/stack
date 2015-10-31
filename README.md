@@ -9,7 +9,7 @@ Build your own REST endpoint right out of the box without worrying about how it'
 ##Usage
 There are only two classes (and one main class) that need to be implemented to see everything in action:
 
-Define the `resource`. The class should be `abstract` as only the `annotations` are used. It follows the `jax-rs` specifications.
+Define the `resource`. The class must be `abstract`. This is where the `jax-rs` and `swagger` specifications are.
 ```java
 package example.resource;
 
@@ -33,7 +33,9 @@ import io.swagger.annotations.ApiParam;
 @Path("/api/my-resource")
 public abstract class MyResource {
 
-    @ApiOperation(value = "create", notes = "Creates and returns the id of a JSON representation of MyItem.")
+    @ApiOperation(
+            value = "create",
+            notes = "Creates and returns the id of a JSON representation of MyItem.")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
@@ -41,7 +43,9 @@ public abstract class MyResource {
             @ApiParam("item description")
             final MyItem item);
 
-    @ApiOperation(value = "read", notes = "Returns a JSON representation of the specified MyItem.")
+    @ApiOperation(
+            value = "read",
+            notes = "Returns a JSON representation of the specified MyItem.")
     @GET
     @Path("/{_id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -50,7 +54,9 @@ public abstract class MyResource {
             @PathParam("_id")
             final String _id);
 
-    @ApiOperation(value = "update", notes = "Updates the specified MyItem with a new JSON representation.")
+    @ApiOperation(
+            value = "update",
+            notes = "Updates the specified MyItem with a new JSON representation.")
     @PUT
     @Path("/{_id}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -62,7 +68,9 @@ public abstract class MyResource {
             @ApiParam("item description")
             final MyItem item);
 
-    @ApiOperation(value = "delete", notes = "Deletes the specified MyItem.")
+    @ApiOperation(
+            value = "delete",
+            notes = "Deletes the specified MyItem.")
     @DELETE
     @Path("/{_id}")
     public abstract Response delete(
@@ -72,7 +80,7 @@ public abstract class MyResource {
 }
 ```
 
-Define the `container`. This is where the `application` lies.
+Define the `container`. This class must be `final`. This is where the `business logic` is.
 ```java
 package example.container;
 
@@ -137,7 +145,7 @@ public final class MyContainer extends MyResource {
 }
 ```
 
-Finally, start up the `application`.
+Start the `application`.
 ```java
 package example;
 
