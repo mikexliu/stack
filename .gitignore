@@ -7,5 +7,7 @@ target/
 # linux
 *~
 
+.metadata
+
 # project
 var/

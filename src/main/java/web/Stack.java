@@ -97,7 +97,7 @@ public class Stack {
         }
 
         this.injector = injector;
-
+        
         this.server = new Server(Integer.parseInt(Stack.properties.getProperty("port")));
     }
 

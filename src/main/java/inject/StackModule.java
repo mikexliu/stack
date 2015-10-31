@@ -98,8 +98,8 @@ public abstract class StackModule extends AbstractModule {
     private final Object bindContainer() {
         try {
             final Object containerInstance = container.newInstance();
+            requestInjection(containerInstance);
             bind(container).toInstance(container.cast(containerInstance));
-
             return containerInstance;
         } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
