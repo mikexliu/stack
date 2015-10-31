@@ -1,9 +1,10 @@
-package example;
+package example.container;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import example.resource.MyResource;
 import inject.StackModule;
 import web.Stack.ResponseThrowableHandler;
 

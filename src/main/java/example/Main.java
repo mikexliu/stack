@@ -3,6 +3,7 @@ package example;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import example.container.MyModule;
 import web.Stack;
 
 public class Main {

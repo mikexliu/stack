@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
@@ -52,16 +53,11 @@ public abstract class StackModule extends AbstractModule {
         this.container = container;
         this.resourceToContainer = Maps.newHashMap();
 
-        final Set<Class<?>> resourceInterfaces = Sets.newHashSet(this.resource.getInterfaces());
-        final Set<Class<?>> containerInterfaces = Sets.newHashSet(this.container.getInterfaces());
-        final Set<Method> intersectingInterfaces = Sets.newHashSet();
-        for (final Class<?> intersectingInterface : Sets.intersection(resourceInterfaces, containerInterfaces)) {
-            intersectingInterfaces.addAll(Sets.newHashSet(intersectingInterface.getMethods()));
-        }
+        final Set<Method> abstractMethods = Sets.newHashSet(resource.getMethods()).stream()
+                .filter(method -> Modifier.isAbstract(method.getModifiers())).collect(Collectors.toSet());
 
-        for (final Method method : intersectingInterfaces) {
-            final Method resourceMethod = findMatchingMethod(this.resource, method);
-            final Method containerMethod = findMatchingMethod(this.container, method);
+        for (final Method resourceMethod : abstractMethods) {
+            final Method containerMethod = findMatchingMethod(this.container, resourceMethod);
             this.resourceToContainer.put(resourceMethod, containerMethod);
         }
 

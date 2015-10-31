@@ -7,33 +7,11 @@ Build your own REST endpoint right out of the box without worrying about how it'
 * `swagger-ui` self document your apis and have a clean interface to using them
 
 ##Usage
-There are only four classes (and one main class) that need to be implemented to see everything in action:
+There are only three classes (and one main class) that need to be implemented to see everything in action:
 
-Define the `interface`. This is the interface that is shared between the `resource` and the `container`.
+Define the `resource`. The class should be `abstract` as only the `annotations` are used. It follows the `jax-rs` specifications.
 ```java
-package example;
-
-import javax.ws.rs.core.Response;
-
-public interface MyInterface {
-
-    public String create(final MyItem item);
-
-    public MyItem read(final String _id);
-
-    public Response update(final String _id, final MyItem item);
-
-    public Response delete(final String _id);
-}
-
-```
-
-Define the `resource`. The class should be `abstract` as only the `annotations` are used. It follows the `jax-rs` specifications and implements the `interface` defined.
-```java
-package example;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+package example.resource;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -46,43 +24,42 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import example.container.MyItem;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
 @Api(value = "my-resource")
 @Path("/api/my-resource")
-public abstract class MyResource implements MyInterface {
+public abstract class MyResource {
 
     @ApiOperation(value = "create", notes = "Creates and returns the id of a JSON representation of MyItem.")
-    @Override
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
     public abstract String create(final MyItem item);
 
     @ApiOperation(value = "read", notes = "Returns a JSON representation of the specified MyItem.")
-    @Override
     @GET
     @Path("/{_id}")
     @Produces(MediaType.APPLICATION_JSON)
     public abstract MyItem read(@PathParam("_id") final String _id);
 
     @ApiOperation(value = "update", notes = "Updates the specified MyItem with a new JSON representation.")
-    @Override
     @PUT
     @Path("/{_id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public abstract Response update(@PathParam("_id") final String _id, final MyItem item);
 
     @ApiOperation(value = "delete", notes = "Deletes the specified MyItem.")
-    @Override
     @DELETE
     @Path("/{_id}")
     public abstract Response delete(@PathParam("_id") final String _id);
 }
-
 ```
 
-Define the `container`. This is where the `application` lies. It also implements the `interface` defined.
+Define the `container`. This is where the `application` lies.
 ```java
-package example;
+package example.container;
 
 import java.util.Map;
 import java.util.UUID;
@@ -93,7 +70,9 @@ import javax.ws.rs.core.Response.Status;
 
 import com.google.common.collect.Maps;
 
-public final class MyContainer implements MyInterface {
+import example.resource.MyResource;
+
+public final class MyContainer extends MyResource {
 
     private Map<String, MyItem> items = Maps.newHashMap();
 
@@ -141,19 +120,18 @@ public final class MyContainer implements MyInterface {
         return Response.status(Status.NO_CONTENT).build();
     }
 }
-
 ```
 
 Define the `module`. This is the piece that glues the `resource` to the `container`.
 ```java
-package example;
-
-import inject.StackModule;
+package example.container;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import example.resource.MyResource;
+import inject.StackModule;
 import web.Stack.ResponseThrowableHandler;
 
 public class MyModule extends StackModule {
@@ -177,10 +155,11 @@ Finally, start up the `application`.
 ```java
 package example;
 
-import web.Stack;
-
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
+import example.container.MyModule;
+import web.Stack;
 
 public class Main {
 
@@ -192,7 +171,6 @@ public class Main {
         new Stack(injector).start();
     }
 }
-
 ```
 
 Let's see it in action:
@@ -216,6 +194,10 @@ Content-Type: application/json
 Date: Tue, 29 Sep 2015 05:43:26 GMT
 ```
 
+##Restrictions
+* The resource's package must be separate from the container's package.
+* The container must have a default constructor. This means to use `guice`, fields must be at least package private.
+
 ##Swagger
 If you use the built-in Stack class to start up the application, then we can also take advantage of `swagger`. Navigate to `http://localhost:5555/swagger.json/` to see the swagger representation. `swagger-ui` is also already configured for you at `http://localhost:5555/docs`.
 
@@ -233,7 +215,6 @@ If you use the built-in Stack class to start up the application, then we can als
 * `authentication` not implemented
 
 #Future
-* clean up of modules (errors defined within containers and global errors can be handled separatly)
-* seperate resource paths from swagger paths
+* separate resource paths from swagger paths
 * auto find resources
 * auto filter guice resources better

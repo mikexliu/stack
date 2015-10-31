@@ -1,4 +1,4 @@
-package example;
+package example.container;
 
 import java.util.Map;
 import java.util.UUID;
@@ -9,7 +9,9 @@ import javax.ws.rs.core.Response.Status;
 
 import com.google.common.collect.Maps;
 
-public final class MyContainer implements MyInterface {
+import example.resource.MyResource;
+
+public final class MyContainer extends MyResource {
 
     private Map<String, MyItem> items = Maps.newHashMap();
 

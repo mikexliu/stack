@@ -1,4 +1,4 @@
-package example;
+package example.container;
 
 public class MyItem {
     public String _id;
