@@ -7,7 +7,7 @@ Build your own REST endpoint right out of the box without worrying about how it'
 * `swagger-ui` self document your apis and have a clean interface to using them
 
 ##Usage
-There are only three classes (and one main class) that need to be implemented to see everything in action:
+There are only two classes (and one main class) that need to be implemented to see everything in action:
 
 Define the `resource`. The class should be `abstract` as only the `annotations` are used. It follows the `jax-rs` specifications.
 ```java
@@ -27,6 +27,7 @@ import javax.ws.rs.core.Response;
 import example.container.MyItem;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 
 @Api(value = "my-resource")
 @Path("/api/my-resource")
@@ -36,24 +37,38 @@ public abstract class MyResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    public abstract String create(final MyItem item);
+    public abstract String create(
+            @ApiParam("item description")
+            final MyItem item);
 
     @ApiOperation(value = "read", notes = "Returns a JSON representation of the specified MyItem.")
     @GET
     @Path("/{_id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public abstract MyItem read(@PathParam("_id") final String _id);
+    public abstract MyItem read(
+            @ApiParam("_id description")
+            @PathParam("_id")
+            final String _id);
 
     @ApiOperation(value = "update", notes = "Updates the specified MyItem with a new JSON representation.")
     @PUT
     @Path("/{_id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public abstract Response update(@PathParam("_id") final String _id, final MyItem item);
+    public abstract Response update(
+            @ApiParam("_id description")
+            @PathParam("_id")
+            final String _id,
+            
+            @ApiParam("item description")
+            final MyItem item);
 
     @ApiOperation(value = "delete", notes = "Deletes the specified MyItem.")
     @DELETE
     @Path("/{_id}")
-    public abstract Response delete(@PathParam("_id") final String _id);
+    public abstract Response delete(
+            @ApiParam("_id description")
+            @PathParam("_id")
+            final String _id);
 }
 ```
 
@@ -122,52 +137,24 @@ public final class MyContainer extends MyResource {
 }
 ```
 
-Define the `module`. This is the piece that glues the `resource` to the `container`.
+Finally, start up the `application`.
 ```java
-package example.container;
+package example;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import example.resource.MyResource;
-import inject.StackModule;
-import web.Stack.ResponseThrowableHandler;
-
-public class MyModule extends StackModule {
-
-    @Override
-    protected void configure() {
-        bindResourceToContainer(MyResource.class, MyContainer.class);
-
-        bind(ResponseThrowableHandler.class).toInstance(new ResponseThrowableHandler() {
-
-            @Override
-            public Response handleThrowable(final Throwable throwable) {
-                return Response.status(Status.INTERNAL_SERVER_ERROR).type(MediaType.TEXT_PLAIN).build();
-            }
-        });
-    }
-}
-```
-
-Finally, start up the `application`.
-```java
-package example;
-
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import example.container.MyModule;
 import web.Stack;
+import web.Stack.ResponseThrowableHandler;
 
 public class Main {
 
-    public static void main(String[] args) {
-
-        final MyModule myModule = new MyModule();
-        final Injector injector = Guice.createInjector(myModule);
-
+    public static void main(String[] args) throws Exception {
         new Stack(injector).start();
     }
 }
@@ -198,9 +185,6 @@ Date: Tue, 29 Sep 2015 05:43:26 GMT
 * The resource's package must be separate from the container's package.
 * The container must have a default constructor. This means to use `guice`, fields must be at least package private.
 
-##Swagger
-If you use the built-in Stack class to start up the application, then we can also take advantage of `swagger`. Navigate to `http://localhost:5555/swagger.json/` to see the swagger representation. `swagger-ui` is also already configured for you at `http://localhost:5555/docs`.
-
 ##Example
 `git clone https://github.com/mikexliu/stack.git`
 
@@ -208,13 +192,6 @@ If you use the built-in Stack class to start up the application, then we can als
 
 `http://localhost:5555/docs` should now be accessible with all resources defined.
 
-#Extra Goodies
-* `server` ready for use (not optimized)
-* `swagger` ready for use (not optimized)
-* `persistence` not implemented
-* `authentication` not implemented
-
 #Future
-* separate resource paths from swagger paths
-* auto find resources
-* auto filter guice resources better
+* persistence
+* authentication
