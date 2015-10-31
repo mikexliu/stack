@@ -141,21 +141,12 @@ Finally, start up the `application`.
 ```java
 package example;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-
 import web.Stack;
-import web.Stack.ResponseThrowableHandler;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        new Stack(injector).start();
+        new Stack().start();
     }
 }
 ```

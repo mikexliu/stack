@@ -57,6 +57,10 @@ import javassist.util.proxy.MethodFilter;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 
+/**
+ * TODO: use swagger-core annotations explicitly
+ * https://github.com/swagger-api/swagger-core/wiki/Annotations-1.5.X#api
+ */
 public class Stack {
 
     private static final Logger log = LoggerFactory.getLogger(Stack.class);
