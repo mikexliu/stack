@@ -17,6 +17,9 @@ public class Main {
     public static void main(String[] args) throws Exception {
         final Injector injector = Guice.createInjector(new AbstractModule() {
 
+            /**
+             * Inject the data map into {@link MyContainer}.
+             */
             @Override
             protected void configure() {
                 final Map<String, MyItem> items = new HashMap<>();

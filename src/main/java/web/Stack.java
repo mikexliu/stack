@@ -51,7 +51,8 @@ import io.swagger.jaxrs.listing.ApiListingResource;
  * better scanner)
  * https://github.com/swagger-api/swagger-core/wiki/Annotations-1.5.X#api
  * 
- * TODO: remove Server from here, add to constructor
+ * TODO: remove Server from here, add to injector (every object, including
+ * Properties, should come from injector; if none, then default)
  * 
  * TODO: make the ResponseThrowableHandler easier to inject or create
  * 

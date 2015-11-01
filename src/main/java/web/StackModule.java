@@ -12,7 +12,6 @@ import javax.ws.rs.Path;
 
 import org.reflections.Reflections;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.AbstractModule;
@@ -56,6 +55,7 @@ public class StackModule extends AbstractModule {
     private final void bindResourceToContainer(final Class<?> resource, final Class<?> container) {
         this.resourceToContainer = Maps.newHashMap();
 
+        // TODO: this should not have non-abstract methods so we should throw exception then
         final Set<Method> abstractMethods = Sets.newHashSet(resource.getMethods()).stream()
                 .filter(method -> Modifier.isAbstract(method.getModifiers())).collect(Collectors.toSet());
 

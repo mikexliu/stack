@@ -55,8 +55,9 @@ public class StackTest {
             @Override
             protected void configure() {
                 final Map<String, MyItem> items = new HashMap<>();
-                bind(new TypeLiteral<Map<String, MyItem>>() {
-                }).annotatedWith(Names.named("items")).toInstance(items);
+                bind(new TypeLiteral<Map<String, MyItem>>() {})
+                    .annotatedWith(Names.named("items"))
+                    .toInstance(items);
             }
         });
         

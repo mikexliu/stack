@@ -22,7 +22,7 @@ public abstract class MyResource {
 
     @ApiOperation(
             value = "create",
-            notes = "Creates and returns the id of a JSON representation of MyItem.")
+            notes = "Creates and returns the id of the created MyItem.")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
