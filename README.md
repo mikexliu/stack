@@ -1,6 +1,6 @@
 #stack
 ##Introduction
-Build your own REST endpoint right out of the box without worrying about how it's wired together. Takes advantage of the following libraries (only `guice` and `jersey` are required):
+Build your own REST endpoint right out of the box without worrying about how it's wired together. Takes advantage of the following libraries:
 * `guice` dependency injection
 * `jersey` rest annotations
 * `jetty` simple but powerful webserver that is pre-configured to work with `swagger`
@@ -80,7 +80,7 @@ public abstract class MyResource {
 }
 ```
 
-Define the `container`. This class must be `final`. This is where the `business logic` is.
+Define the `container`. This class must be `final` and extend the resource class. This is where the `business logic` is.
 ```java
 package example.container;
 
@@ -91,13 +91,20 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
+import example.Main;
 import example.resource.MyResource;
 
 public final class MyContainer extends MyResource {
 
-    private Map<String, MyItem> items = Maps.newHashMap();
+    /**
+     * This object is injected from the top-level injector in {@link Main}.
+     */
+    @Inject
+    @Named("items")
+    Map<String, MyItem> items;
 
     /**
      * Create an MyItem object
@@ -149,12 +156,33 @@ Start the `application`.
 ```java
 package example;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.TypeLiteral;
+import com.google.inject.name.Names;
+
+import example.container.MyItem;
 import web.Stack;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        new Stack().start();
+        final Injector injector = Guice.createInjector(new AbstractModule() {
+
+            @Override
+            protected void configure() {
+                final Map<String, MyItem> items = new HashMap<>();
+                bind(new TypeLiteral<Map<String, MyItem>>() {})
+                    .annotatedWith(Names.named("items"))
+                    .toInstance(items);
+            }
+        });
+
+        new Stack(injector).start();
     }
 }
 ```
@@ -182,7 +210,8 @@ Date: Tue, 29 Sep 2015 05:43:26 GMT
 
 ##Restrictions
 * The resource's package must be separate from the container's package.
-* The container must have a default constructor. This means to use `guice`, fields must be at least package private.
+* The container must have a constructor with zero arguments. This means to use `@Inject`, fields must be at least package private.
+* The api.prefix in the properties must match all @Path prefix. Example: if api.prefix=api, then all @Path must begin with "/api/"
 
 ##Example
 `git clone https://github.com/mikexliu/stack.git`

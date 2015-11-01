@@ -7,13 +7,20 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
+import example.Main;
 import example.resource.MyResource;
 
 public final class MyContainer extends MyResource {
 
-    private Map<String, MyItem> items = Maps.newHashMap();
+    /**
+     * This object is injected from the top-level injector in {@link Main}.
+     */
+    @Inject
+    @Named("items")
+    Map<String, MyItem> items;
 
     /**
      * Create an MyItem object
