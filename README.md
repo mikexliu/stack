@@ -209,9 +209,9 @@ Date: Tue, 29 Sep 2015 05:43:26 GMT
 ```
 
 ##How
-When `Stack` is created, it scans the every abstract class that is annotated with `@Path`.If found, it will attempt to 
-find an implementing class. If none is found or more than one is found, an error is thrown. Once a `resource` and a `container`
-class are found, they are wired together automatically and hosted via `jetty`.
+When `Stack` is created, it scans every abstract class that is annotated with `@Path`.If found, it will attempt to find 
+an implementing class. If none or more than one is found, an `IllegalStateException` is thrown. 
+Once a `resource` and a `container` class are found, they are wired together automatically and hosted via `jetty`.
 
 ##Restrictions
 * The `resource` package must be separate from the `container` package.
