@@ -80,7 +80,7 @@ public abstract class MyResource {
 }
 ```
 
-Define the `container`. This class must be `final` and extend the resource class. This is where the `business logic` is.
+Define the `container`. This class must extend the `resource` class. This is where the `business logic` is.
 ```java
 package example.container;
 
@@ -150,6 +150,31 @@ public final class MyContainer extends MyResource {
         return Response.status(Status.NO_CONTENT).build();
     }
 }
+```
+
+Default properties.
+```INI
+#default name
+name=stack
+
+# default version
+version=0.0.1
+
+# default port
+port=5555
+
+# required prefix (must be different)
+# api.prefix must be the beginning of all api paths
+# example: if api.prefix=api, then all @Path must begin with "/api/"
+api.prefix=api
+docs.prefix=docs
+
+# swagger configuration
+swagger.title=stack-swagger-ui
+swagger.description=swagger-ui endpoints
+
+# dist folder from swagger-ui
+swagger.dist.folder=swagger-ui
 ```
 
 Start the `application`.

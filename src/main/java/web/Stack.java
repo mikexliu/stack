@@ -1,10 +1,6 @@
 package web;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
 import java.net.URISyntaxException;
 import java.util.EnumSet;
 import java.util.Map;
@@ -18,7 +14,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.Provider;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
@@ -31,15 +26,12 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
-import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
@@ -53,9 +45,6 @@ import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
-import javassist.util.proxy.MethodFilter;
-import javassist.util.proxy.MethodHandler;
-import javassist.util.proxy.ProxyFactory;
 
 /**
  * TODO: use swagger-core annotations explicitly (remove BeanConfig and use
@@ -65,6 +54,12 @@ import javassist.util.proxy.ProxyFactory;
  * TODO: remove Server from here, add to constructor
  * 
  * TODO: make the ResponseThrowableHandler easier to inject or create
+ * 
+ * TODO: should read from external stack.properties first. then load our own.
+ * how to force this?
+ * 
+ * TODO: publish this to central repository.
+ * https://maven.apache.org/guides/mini/guide-central-repository-upload.html
  */
 public class Stack {
 
@@ -229,7 +224,6 @@ public class Stack {
         return swaggerUIContext;
     }
 
-    @Provider
     private static class ResponseThrowableMapper implements ExceptionMapper<Throwable> {
 
         private final ResponseThrowableHandler responseTHrowableHandler;
@@ -250,127 +244,5 @@ public class Stack {
      */
     public static interface ResponseThrowableHandler {
         public Response handleThrowable(final Throwable throwable);
-    }
-    
-    /**
-     * StackModule definition
-     */
-    private class StackModule extends AbstractModule {
-
-        private Map<Method, Method> resourceToContainer;
-
-        protected void configure() {
-            final Reflections reflections = new Reflections();
-            final Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Path.class);
-            for (final Class<?> resource : classes) {
-                if (Modifier.isAbstract(resource.getModifiers())) {
-                    Class<?> containerFound = null;
-                    for (final Class<?> container : classes) {
-                        if (resource.isAssignableFrom(container) && resource != container) {
-                            if (containerFound == null) {
-                                containerFound = container;
-                            } else {
-                                throw new IllegalStateException(
-                                        "Found multiple implementations of " + resource + " (can only accept one)");
-                            }
-                        }
-                    }
-                    if (containerFound == null) {
-                        throw new IllegalStateException("Found no implementations of " + resource);
-                    } else {
-                        bindResourceToContainer(resource, containerFound);
-                    }
-                }
-            }
-        }
-
-        private final void bindResourceToContainer(final Class<?> resource, final Class<?> container) {
-            Preconditions.checkArgument(Modifier.isFinal(container.getModifiers()),
-                    container + " must be declared as final");
-
-            this.resourceToContainer = Maps.newHashMap();
-
-            final Set<Method> abstractMethods = Sets.newHashSet(resource.getMethods()).stream()
-                    .filter(method -> Modifier.isAbstract(method.getModifiers())).collect(Collectors.toSet());
-
-            for (final Method resourceMethod : abstractMethods) {
-                final Method containerMethod = findMatchingMethod(container, resourceMethod);
-                this.resourceToContainer.put(resourceMethod, containerMethod);
-            }
-
-            bindResource(bindContainer(container), resource);
-        }
-
-        private final Method findMatchingMethod(final Class<?> classType, final Method matchingMethod) {
-            for (final Method method : classType.getMethods()) {
-                if (method.getName().equals(matchingMethod.getName())
-                        && matchParameters(method.getParameters(), matchingMethod.getParameters())) {
-                    return method;
-                }
-            }
-            return null;
-        }
-
-        private final boolean matchParameters(final Parameter[] parameters1, final Parameter[] parameters2) {
-            if (parameters1.length != parameters2.length) {
-                return false;
-            } else {
-                for (int i = 0; i < parameters1.length; i++) {
-                    final Parameter parameter1 = parameters1[i];
-                    final Parameter parameter2 = parameters2[i];
-
-                    if (!parameter1.getType().equals(parameter2.getType())) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        }
-
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        private final Object bindContainer(final Class container) {
-            try {
-                final Object containerInstance = container.newInstance();
-                requestInjection(containerInstance);
-                bind(container).toInstance(container.cast(containerInstance));
-                return containerInstance;
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        private final Object bindResource(final Object containerInstance, Class resource) {
-            final ProxyFactory factory = new ProxyFactory();
-            factory.setSuperclass(resource);
-            factory.setFilter(new MethodFilter() {
-                @Override
-                public boolean isHandled(Method method) {
-                    return Modifier.isAbstract(method.getModifiers());
-                }
-            });
-
-            final MethodHandler handler = new MethodHandler() {
-                @Override
-                public Object invoke(Object b, Method thisMethod, Method proceed, Object[] args) throws Throwable {
-                    final Method containerMethod = resourceToContainer.get(thisMethod);
-                    if (containerMethod != null) {
-                        return containerMethod.invoke(containerInstance, args);
-                    } else {
-                        throw new IllegalAccessException(
-                                thisMethod + " is not implemented in " + containerInstance.getClass() + " via interface");
-                    }
-                }
-            };
-
-            try {
-                final Object resourceInstance = resource.cast(factory.create(new Class<?>[0], new Object[0], handler));
-                bind(resource).toInstance(resource.cast(resourceInstance));
-                return resourceInstance;
-            } catch (NoSuchMethodException | IllegalArgumentException | InstantiationException | IllegalAccessException
-                    | InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 }
