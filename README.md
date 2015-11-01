@@ -250,7 +250,7 @@ Once a `resource` and a `container` class are found, they are wired together aut
 
 `http://localhost:5555/docs` should now be accessible with all resources defined.
 
-#Future
+##Future
 * switch to jdk7
 * proxy client class
   * auto generated
