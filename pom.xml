@@ -33,6 +33,16 @@
         </executions>
         <configuration>
           <mainClass>example.Main</mainClass>
+          <classpathScope>test</classpathScope>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.19</version>
+        <configuration>
+          <forkCount>0</forkCount>
         </configuration>
       </plugin>
     </plugins>
@@ -103,6 +113,7 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.12</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

@@ -2,8 +2,14 @@ package web;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -29,9 +35,9 @@ import example.container.MyItem;
  * Functional tests
  */
 public class StackTest {
-    
+
     @Rule
-    public ExpectedException exceptedException= ExpectedException.none();
+    public ExpectedException exceptedException = ExpectedException.none();
 
     private static ObjectMapper om = new ObjectMapper();
 
@@ -53,7 +59,7 @@ public class StackTest {
                 }).annotatedWith(Names.named("items")).toInstance(items);
             }
         });
-
+        
         stack = new Stack(injector);
         stack.start();
     }
@@ -63,15 +69,22 @@ public class StackTest {
         stack.stop();
     }
 
-    private String create(final String data) throws Exception {
-        final ProcessBuilder processBuilder = new ProcessBuilder("curl", "-X", "POST",
-                "http://localhost:" + port + "/api/my-resource/", "-d", "{\"data\":\"" + data + "\"}", "--header",
-                "Content-Type: application/json");
+    private Process curl(final String... args) throws IOException, InterruptedException {
+        final List<String> curlArgs = new LinkedList<>();
+        curlArgs.add("curl");
+        curlArgs.addAll(Arrays.asList(args));
+        final ProcessBuilder processBuilder = new ProcessBuilder(curlArgs);
         final Process process = processBuilder.start();
         process.waitFor();
+        assertEquals(0, process.exitValue());
+        return process;
+    }
+
+    private String create(final String data) throws Exception {
+        final Process process = curl("-X", "POST", "http://localhost:" + port + "/api/my-resource/", "-d",
+                "{\"data\":\"" + data + "\"}", "--header", "Content-Type: application/json");
         final InputStream inputStream = process.getInputStream();
         final String _id = new String(ByteStreams.toByteArray(inputStream));
-        assertEquals(0, process.exitValue());
         return _id;
     }
 
@@ -79,31 +92,23 @@ public class StackTest {
      * 
      * @param _id
      * @return
-     * @throws Exception if the data read is bad or doesn't exist
+     * @throws Exception
+     *             if the data read is bad or doesn't exist
      */
     private MyItem read(final String _id) throws Exception {
-        final ProcessBuilder processBuilder = new ProcessBuilder("curl", "-X", "GET",
-                "http://localhost:" + port + "/api/my-resource/" + _id);
-        final Process process = processBuilder.start();
-        process.waitFor();
+        final Process process = curl("-X", "GET", "http://localhost:" + port + "/api/my-resource/" + _id);
         final InputStream inputStream = process.getInputStream();
         final MyItem item = om.readValue(inputStream, MyItem.class);
         return item;
     }
 
     private void update(final String _id, final String data) throws Exception {
-        final ProcessBuilder processBuilder = new ProcessBuilder("curl", "-X", "PUT",
-                "http://localhost:" + port + "/api/my-resource/" + _id, "-d", "{\"data\": \"" + data + "\"}",
+        curl("-X", "PUT", "http://localhost:" + port + "/api/my-resource/" + _id, "-d", "{\"data\": \"" + data + "\"}",
                 "--header", "Content-Type: application/json");
-        final Process process = processBuilder.start();
-        process.waitFor();
     }
 
     private void delete(final String _id) throws Exception {
-        final ProcessBuilder processBuilder = new ProcessBuilder("curl", "-X", "DELETE",
-                "http://localhost:" + port + "/api/my-resource/" + _id);
-        final Process process = processBuilder.start();
-        process.waitFor();
+        curl("-X", "DELETE", "http://localhost:" + port + "/api/my-resource/" + _id);
     }
 
     @Test
@@ -131,10 +136,10 @@ public class StackTest {
         final String readData = read(_id).data;
         assertEquals(data, readData);
         delete(_id);
-        
+
         exceptedException.expect(JsonMappingException.class);
         exceptedException.expectMessage("No content to map");
-        
+
         read(_id);
     }
 }

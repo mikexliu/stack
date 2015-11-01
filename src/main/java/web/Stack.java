@@ -181,7 +181,7 @@ public class Stack {
         final Set<String> resources = Sets.newHashSet();
         resources.add(ApiListingResource.class.getPackage().getName());
         final String[] packages = resources.toArray(new String[resources.size()]);
-        ResourceConfig resourceConfig = new ResourceConfig();
+        final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.packages(packages);
 
         final ServletHolder servletHolder = new ServletHolder(new ServletContainer(resourceConfig));
@@ -251,123 +251,126 @@ public class Stack {
     public static interface ResponseThrowableHandler {
         public Response handleThrowable(final Throwable throwable);
     }
-}
+    
+    /**
+     * StackModule definition
+     */
+    private class StackModule extends AbstractModule {
 
-class StackModule extends AbstractModule {
+        private Map<Method, Method> resourceToContainer;
 
-    private Map<Method, Method> resourceToContainer;
-
-    protected void configure() {
-        final Reflections reflections = new Reflections();
-        final Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Path.class);
-        for (final Class<?> resource : classes) {
-            if (Modifier.isAbstract(resource.getModifiers())) {
-                Class<?> containerFound = null;
-                for (final Class<?> container : classes) {
-                    if (resource.isAssignableFrom(container) && resource != container) {
-                        if (containerFound == null) {
-                            containerFound = container;
-                        } else {
-                            throw new IllegalStateException(
-                                    "Found multiple implementations of " + resource + " (can only accept one)");
+        protected void configure() {
+            final Reflections reflections = new Reflections();
+            final Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Path.class);
+            for (final Class<?> resource : classes) {
+                if (Modifier.isAbstract(resource.getModifiers())) {
+                    Class<?> containerFound = null;
+                    for (final Class<?> container : classes) {
+                        if (resource.isAssignableFrom(container) && resource != container) {
+                            if (containerFound == null) {
+                                containerFound = container;
+                            } else {
+                                throw new IllegalStateException(
+                                        "Found multiple implementations of " + resource + " (can only accept one)");
+                            }
                         }
                     }
-                }
-                if (containerFound == null) {
-                    throw new IllegalStateException("Found no implementations of " + resource);
-                } else {
-                    bindResourceToContainer(resource, containerFound);
-                }
-            }
-        }
-    }
-
-    private final void bindResourceToContainer(final Class<?> resource, final Class<?> container) {
-        Preconditions.checkArgument(Modifier.isFinal(container.getModifiers()),
-                container + " must be declared as final");
-
-        this.resourceToContainer = Maps.newHashMap();
-
-        final Set<Method> abstractMethods = Sets.newHashSet(resource.getMethods()).stream()
-                .filter(method -> Modifier.isAbstract(method.getModifiers())).collect(Collectors.toSet());
-
-        for (final Method resourceMethod : abstractMethods) {
-            final Method containerMethod = findMatchingMethod(container, resourceMethod);
-            this.resourceToContainer.put(resourceMethod, containerMethod);
-        }
-
-        bindResource(bindContainer(container), resource);
-    }
-
-    private final Method findMatchingMethod(final Class<?> classType, final Method matchingMethod) {
-        for (final Method method : classType.getMethods()) {
-            if (method.getName().equals(matchingMethod.getName())
-                    && matchParameters(method.getParameters(), matchingMethod.getParameters())) {
-                return method;
-            }
-        }
-        return null;
-    }
-
-    private final boolean matchParameters(final Parameter[] parameters1, final Parameter[] parameters2) {
-        if (parameters1.length != parameters2.length) {
-            return false;
-        } else {
-            for (int i = 0; i < parameters1.length; i++) {
-                final Parameter parameter1 = parameters1[i];
-                final Parameter parameter2 = parameters2[i];
-
-                if (!parameter1.getType().equals(parameter2.getType())) {
-                    return false;
+                    if (containerFound == null) {
+                        throw new IllegalStateException("Found no implementations of " + resource);
+                    } else {
+                        bindResourceToContainer(resource, containerFound);
+                    }
                 }
             }
-            return true;
         }
-    }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private final Object bindContainer(final Class container) {
-        try {
-            final Object containerInstance = container.newInstance();
-            requestInjection(containerInstance);
-            bind(container).toInstance(container.cast(containerInstance));
-            return containerInstance;
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
+        private final void bindResourceToContainer(final Class<?> resource, final Class<?> container) {
+            Preconditions.checkArgument(Modifier.isFinal(container.getModifiers()),
+                    container + " must be declared as final");
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private final Object bindResource(final Object containerInstance, Class resource) {
-        final ProxyFactory factory = new ProxyFactory();
-        factory.setSuperclass(resource);
-        factory.setFilter(new MethodFilter() {
-            @Override
-            public boolean isHandled(Method method) {
-                return Modifier.isAbstract(method.getModifiers());
+            this.resourceToContainer = Maps.newHashMap();
+
+            final Set<Method> abstractMethods = Sets.newHashSet(resource.getMethods()).stream()
+                    .filter(method -> Modifier.isAbstract(method.getModifiers())).collect(Collectors.toSet());
+
+            for (final Method resourceMethod : abstractMethods) {
+                final Method containerMethod = findMatchingMethod(container, resourceMethod);
+                this.resourceToContainer.put(resourceMethod, containerMethod);
             }
-        });
 
-        final MethodHandler handler = new MethodHandler() {
-            @Override
-            public Object invoke(Object b, Method thisMethod, Method proceed, Object[] args) throws Throwable {
-                final Method containerMethod = resourceToContainer.get(thisMethod);
-                if (containerMethod != null) {
-                    return containerMethod.invoke(containerInstance, args);
-                } else {
-                    throw new IllegalAccessException(
-                            thisMethod + " is not implemented in " + containerInstance.getClass() + " via interface");
+            bindResource(bindContainer(container), resource);
+        }
+
+        private final Method findMatchingMethod(final Class<?> classType, final Method matchingMethod) {
+            for (final Method method : classType.getMethods()) {
+                if (method.getName().equals(matchingMethod.getName())
+                        && matchParameters(method.getParameters(), matchingMethod.getParameters())) {
+                    return method;
                 }
             }
-        };
+            return null;
+        }
 
-        try {
-            final Object resourceInstance = resource.cast(factory.create(new Class<?>[0], new Object[0], handler));
-            bind(resource).toInstance(resource.cast(resourceInstance));
-            return resourceInstance;
-        } catch (NoSuchMethodException | IllegalArgumentException | InstantiationException | IllegalAccessException
-                | InvocationTargetException e) {
-            throw new RuntimeException(e);
+        private final boolean matchParameters(final Parameter[] parameters1, final Parameter[] parameters2) {
+            if (parameters1.length != parameters2.length) {
+                return false;
+            } else {
+                for (int i = 0; i < parameters1.length; i++) {
+                    final Parameter parameter1 = parameters1[i];
+                    final Parameter parameter2 = parameters2[i];
+
+                    if (!parameter1.getType().equals(parameter2.getType())) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        private final Object bindContainer(final Class container) {
+            try {
+                final Object containerInstance = container.newInstance();
+                requestInjection(containerInstance);
+                bind(container).toInstance(container.cast(containerInstance));
+                return containerInstance;
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        private final Object bindResource(final Object containerInstance, Class resource) {
+            final ProxyFactory factory = new ProxyFactory();
+            factory.setSuperclass(resource);
+            factory.setFilter(new MethodFilter() {
+                @Override
+                public boolean isHandled(Method method) {
+                    return Modifier.isAbstract(method.getModifiers());
+                }
+            });
+
+            final MethodHandler handler = new MethodHandler() {
+                @Override
+                public Object invoke(Object b, Method thisMethod, Method proceed, Object[] args) throws Throwable {
+                    final Method containerMethod = resourceToContainer.get(thisMethod);
+                    if (containerMethod != null) {
+                        return containerMethod.invoke(containerInstance, args);
+                    } else {
+                        throw new IllegalAccessException(
+                                thisMethod + " is not implemented in " + containerInstance.getClass() + " via interface");
+                    }
+                }
+            };
+
+            try {
+                final Object resourceInstance = resource.cast(factory.create(new Class<?>[0], new Object[0], handler));
+                bind(resource).toInstance(resource.cast(resourceInstance));
+                return resourceInstance;
+            } catch (NoSuchMethodException | IllegalArgumentException | InstantiationException | IllegalAccessException
+                    | InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
