@@ -58,7 +58,8 @@ import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 
 /**
- * TODO: use swagger-core annotations explicitly (remove BeanConfig and use better scanner)
+ * TODO: use swagger-core annotations explicitly (remove BeanConfig and use
+ * better scanner)
  * https://github.com/swagger-api/swagger-core/wiki/Annotations-1.5.X#api
  * 
  * TODO: remove Server from here, add to constructor
@@ -101,7 +102,7 @@ public class Stack {
     public Stack(final Injector injector) {
         this(injector, null);
     }
-    
+
     /**
      * 
      * @param properties
@@ -125,7 +126,7 @@ public class Stack {
         } else {
             this.injector = Guice.createInjector(new StackModule());
         }
-        
+
         if (this.injector.getExistingBinding(Key.get(ResponseThrowableHandler.class)) == null) {
             responseThrowableHandler = new ResponseThrowableHandler() {
 
@@ -261,10 +262,21 @@ class StackModule extends AbstractModule {
         final Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Path.class);
         for (final Class<?> resource : classes) {
             if (Modifier.isAbstract(resource.getModifiers())) {
+                Class<?> containerFound = null;
                 for (final Class<?> container : classes) {
                     if (resource.isAssignableFrom(container) && resource != container) {
-                        bindResourceToContainer(resource, container);
+                        if (containerFound == null) {
+                            containerFound = container;
+                        } else {
+                            throw new IllegalStateException(
+                                    "Found multiple implementations of " + resource + " (can only accept one)");
+                        }
                     }
+                }
+                if (containerFound == null) {
+                    throw new IllegalStateException("Found no implementations of " + resource);
+                } else {
+                    bindResourceToContainer(resource, containerFound);
                 }
             }
         }

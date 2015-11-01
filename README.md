@@ -1,10 +1,10 @@
 #stack
 ##Introduction
-Build your own REST endpoint right out of the box without worrying about how it's wired together. Takes advantage of the following libraries:
+Build your own REST endpoint right out of the box without worrying about how it's wired together. The following libraries are used automatically:
 * `guice` dependency injection
 * `jersey` rest annotations
-* `jetty` simple but powerful webserver that is pre-configured to work with `swagger`
-* `swagger-ui` self document your apis and have a clean interface to using them
+* `swagger-ui` describe your rest api
+* `jetty` webserver that hosts `swagger-ui`
 
 ##Usage
 There are only two classes (and one main class) that need to be implemented to see everything in action:
@@ -208,10 +208,15 @@ Content-Type: application/json
 Date: Tue, 29 Sep 2015 05:43:26 GMT
 ```
 
+##How
+When `Stack` is created, it scans the every abstract class that is annotated with `@Path`.If found, it will attempt to 
+find an implementing class. If none is found or more than one is found, an error is thrown. Once a `resource` and a `container`
+class are found, they are wired together automatically and hosted via `jetty`.
+
 ##Restrictions
-* The resource's package must be separate from the container's package.
+* The `resource` package must be separate from the `container` package.
 * The container must have a constructor with zero arguments. This means to use `@Inject`, fields must be at least package private.
-* The api.prefix in the properties must match all @Path prefix. Example: if api.prefix=api, then all @Path must begin with "/api/"
+* The api.prefix in the properties must match all `@Path` prefix. Example: if `api.prefix=api`, then all `@Path` must begin with `/api/`.
 
 ##Example
 `git clone https://github.com/mikexliu/stack.git`
