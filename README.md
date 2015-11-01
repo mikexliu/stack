@@ -215,8 +215,8 @@ Once a `resource` and a `container` class are found, they are wired together aut
 
 ##Restrictions
 * The `resource` package must be separate from the `container` package.
-* The container must have a constructor with zero arguments. This means to use `@Inject`, fields must be at least package private.
-* The api.prefix in the properties must match all `@Path` prefix. Example: if `api.prefix=api`, then all `@Path` must begin with `/api/`.
+* The `container` must have a constructor with zero arguments. This means to use `@Inject`, fields must be at least package private.
+* The `api.prefix` in the properties must match all `@Path` prefix. Example: if `api.prefix=api`, then all `@Path` must begin with `/api/`.
 
 ##Example
 `git clone https://github.com/mikexliu/stack.git`

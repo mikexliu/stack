@@ -1,7 +1,8 @@
 package web;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.InputStream;
-import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -9,8 +10,12 @@ import java.util.UUID;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteStreams;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -20,15 +25,22 @@ import com.google.inject.name.Names;
 
 import example.container.MyItem;
 
+/**
+ * Functional tests
+ */
 public class StackTest {
+    
+    @Rule
+    public ExpectedException exceptedException= ExpectedException.none();
+
+    private static ObjectMapper om = new ObjectMapper();
 
     private static int port;
     private static Stack stack;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        final ServerSocket s = new ServerSocket(0);
-        port = s.getLocalPort();
+        port = 5555;
         final Properties testProperties = new Properties();
         testProperties.put("port", Integer.toString(port));
 
@@ -56,32 +68,73 @@ public class StackTest {
                 "http://localhost:" + port + "/api/my-resource/", "-d", "{\"data\":\"" + data + "\"}", "--header",
                 "Content-Type: application/json");
         final Process process = processBuilder.start();
+        process.waitFor();
         final InputStream inputStream = process.getInputStream();
         final String _id = new String(ByteStreams.toByteArray(inputStream));
+        assertEquals(0, process.exitValue());
         return _id;
     }
 
+    /**
+     * 
+     * @param _id
+     * @return
+     * @throws Exception if the data read is bad or doesn't exist
+     */
     private MyItem read(final String _id) throws Exception {
         final ProcessBuilder processBuilder = new ProcessBuilder("curl", "-X", "GET",
                 "http://localhost:" + port + "/api/my-resource/" + _id);
         final Process process = processBuilder.start();
+        process.waitFor();
         final InputStream inputStream = process.getInputStream();
-        final String data = new String(ByteStreams.toByteArray(inputStream));
-        System.out.println(data);
-        return null;
-    }
-    
-    private void update() throws Exception {
-
+        final MyItem item = om.readValue(inputStream, MyItem.class);
+        return item;
     }
 
-    private void delete() throws Exception {
-
+    private void update(final String _id, final String data) throws Exception {
+        final ProcessBuilder processBuilder = new ProcessBuilder("curl", "-X", "PUT",
+                "http://localhost:" + port + "/api/my-resource/" + _id, "-d", "{\"data\": \"" + data + "\"}",
+                "--header", "Content-Type: application/json");
+        final Process process = processBuilder.start();
+        process.waitFor();
     }
-    
+
+    private void delete(final String _id) throws Exception {
+        final ProcessBuilder processBuilder = new ProcessBuilder("curl", "-X", "DELETE",
+                "http://localhost:" + port + "/api/my-resource/" + _id);
+        final Process process = processBuilder.start();
+        process.waitFor();
+    }
+
     @Test
     public void testCreateRead() throws Exception {
         final String data = UUID.randomUUID().toString() + "_" + UUID.randomUUID().toString();
         final String _id = create(data);
+        final String readData = read(_id).data;
+        assertEquals(data, readData);
+    }
+
+    @Test
+    public void testCreateUpdate() throws Exception {
+        final String data = UUID.randomUUID().toString() + "_" + UUID.randomUUID().toString();
+        final String _id = create(data);
+        final String updatedData = UUID.randomUUID().toString() + "_" + UUID.randomUUID().toString();
+        update(_id, updatedData);
+        final String readData = read(_id).data;
+        assertEquals(updatedData, readData);
+    }
+
+    @Test
+    public void testCreateDelete() throws Exception {
+        final String data = UUID.randomUUID().toString() + "_" + UUID.randomUUID().toString();
+        final String _id = create(data);
+        final String readData = read(_id).data;
+        assertEquals(data, readData);
+        delete(_id);
+        
+        exceptedException.expect(JsonMappingException.class);
+        exceptedException.expectMessage("No content to map");
+        
+        read(_id);
     }
 }
