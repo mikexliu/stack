@@ -1,19 +1,23 @@
 package web;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.Path;
 
-import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.reflect.ClassPath;
 import com.google.inject.AbstractModule;
 
 import javassist.util.proxy.MethodFilter;
@@ -25,11 +29,32 @@ import javassist.util.proxy.ProxyFactory;
  */
 public class StackModule extends AbstractModule {
 
+    private static final Logger log = LoggerFactory.getLogger(StackModule.class);
+
     private Map<Method, Method> resourceToContainer;
 
     protected void configure() {
-        final Reflections reflections = new Reflections();
-        final Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Path.class);
+        // TODO: memory issues?
+        final Set<Class<?>> classes = new HashSet<>();
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        try {
+            for (final ClassPath.ClassInfo info : ClassPath.from(loader).getTopLevelClasses()) {
+                try {
+                    final Class<?> classObject = info.load();
+                    if (classObject.isAnnotationPresent(Path.class)) {
+                        classes.add(classObject);
+                    } else if (!Object.class.equals(classObject) && !classObject.isInterface()
+                            && classObject.getSuperclass().isAnnotationPresent(Path.class)) {
+                        classes.add(classObject);
+                    }
+                } catch (NoClassDefFoundError e) {
+                    // ignore
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         for (final Class<?> resource : classes) {
             if (Modifier.isAbstract(resource.getModifiers())) {
                 Class<?> containerFound = null;
@@ -44,7 +69,9 @@ public class StackModule extends AbstractModule {
                     }
                 }
                 if (containerFound == null) {
-                    throw new IllegalStateException("Found no implementations of " + resource);
+                    log.warn("Found no implementations of " + resource + "; ignoring");
+                    // throw new IllegalStateException("Found no implementations
+                    // of " + resource);
                 } else {
                     bindResourceToContainer(resource, containerFound);
                 }
@@ -55,7 +82,8 @@ public class StackModule extends AbstractModule {
     private final void bindResourceToContainer(final Class<?> resource, final Class<?> container) {
         this.resourceToContainer = Maps.newHashMap();
 
-        // TODO: this should not have non-abstract methods so we should throw exception then
+        // TODO: this should not have non-abstract methods so we should throw
+        // exception then
         final Set<Method> abstractMethods = Sets.newHashSet(resource.getMethods()).stream()
                 .filter(method -> Modifier.isAbstract(method.getModifiers())).collect(Collectors.toSet());
 

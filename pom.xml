@@ -62,12 +62,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.reflections</groupId>
-      <artifactId>reflections</artifactId>
-      <version>0.9.10</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
       <version>9.2.2.v20140723</version>
