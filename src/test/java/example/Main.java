@@ -9,7 +9,6 @@ import com.google.inject.Injector;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 
-import example.container.MyItem;
 import web.Stack;
 
 public class Main {
@@ -23,9 +22,8 @@ public class Main {
             @Override
             protected void configure() {
                 final Map<String, MyItem> items = new HashMap<>();
-                bind(new TypeLiteral<Map<String, MyItem>>() {})
-                    .annotatedWith(Names.named("items"))
-                    .toInstance(items);
+                bind(new TypeLiteral<Map<String, MyItem>>() {
+                }).annotatedWith(Names.named("items")).toInstance(items);
             }
         });
 

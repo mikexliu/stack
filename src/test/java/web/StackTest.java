@@ -27,7 +27,7 @@ import com.google.inject.Injector;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 
-import example.container.MyItem;
+import example.MyItem;
 
 /**
  * Functional tests

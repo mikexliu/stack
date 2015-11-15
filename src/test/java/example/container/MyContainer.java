@@ -11,6 +11,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
 import example.Main;
+import example.MyItem;
 import example.resource.MyResource;
 
 public final class MyContainer extends MyResource {

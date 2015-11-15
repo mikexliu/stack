@@ -57,30 +57,31 @@ public class StackModule extends AbstractModule {
 
         for (final Class<?> resource : classes) {
             if (Modifier.isAbstract(resource.getModifiers())) {
-                Class<?> containerFound = null;
-                for (final Class<?> container : classes) {
-                    if (resource.isAssignableFrom(container) && resource != container) {
-                        if (containerFound == null) {
-                            containerFound = container;
+                Class<?> container = null;
+                for (final Class<?> clazz : classes) {
+                    if (resource.isAssignableFrom(clazz) && resource != clazz) {
+                        if (container == null) {
+                            container = clazz;
                         } else {
                             throw new IllegalStateException(
                                     "Found multiple implementations of " + resource + " (can only accept one)");
                         }
                     }
                 }
-                if (containerFound == null) {
+                if (container == null) {
                     log.warn("Found no implementations of " + resource + "; ignoring");
-                    // throw new IllegalStateException("Found no implementations
-                    // of " + resource);
                 } else {
-                    bindResourceToContainer(resource, containerFound);
+                    log.info("Binding " + resource + " to " + container);
+                    bindResourceToContainer(resource, container);
                 }
             }
         }
     }
 
     private final void bindResourceToContainer(final Class<?> resource, final Class<?> container) {
-        this.resourceToContainer = Maps.newHashMap();
+        if (this.resourceToContainer == null) {
+            this.resourceToContainer = Maps.newHashMap();
+        }
 
         // TODO: this should not have non-abstract methods so we should throw
         // exception then
@@ -100,6 +101,7 @@ public class StackModule extends AbstractModule {
     private final Method findMatchingMethod(final Class<?> classType, final Method matchingMethod) {
         for (final Method method : classType.getMethods()) {
             if (method.getName().equals(matchingMethod.getName())
+                    && method.getReturnType().equals(matchingMethod.getReturnType())
                     && matchParameters(method.getParameters(), matchingMethod.getParameters())) {
                 return method;
             }
