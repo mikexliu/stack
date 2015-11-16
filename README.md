@@ -259,6 +259,7 @@ Once a `resource` and a `container` class are found, they are wired together aut
 ##Technical Goals
 * proxy client class
   * auto generated
+    * asynchronous clients
   * configurable timeouts
 * auto pagination
   * lazy return map so we can get key/value without returning the entire map

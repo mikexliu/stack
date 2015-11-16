@@ -123,8 +123,8 @@ public class StackTestServer {
     }
 
     public static void updateSecondResource(final String _id, final String data) throws Exception {
-        curl("-X", "PUT", "http://localhost:" + StackTestServer.getPort() + "/api/v2/my-resource/" + _id, "-d",
-                "{\"data\": \"" + data + "\"}", "--header", "Content-Type: application/json");
+        curl("-X", "PUT",
+                "http://localhost:" + StackTestServer.getPort() + "/api/v2/my-resource/" + _id + "?data=" + data);
     }
 
     public static void deleteSecondResource(final String _id) throws Exception {

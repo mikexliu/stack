@@ -48,12 +48,13 @@ public final class SecondContainer extends SecondResource {
      * If the item to update does not exist, return 404
      */
     @Override
-    public Response update(final String _id, final MyItem item) {
+    public Response update(final String _id, final String data) {
         if (!items.containsKey(_id)) {
             return Response.status(Status.NOT_FOUND).build();
         }
 
-        item._id = _id;
+        final MyItem item = items.get(_id);
+        item.data = data;
         items.put(_id, item);
         return Response.ok(item, MediaType.APPLICATION_JSON).build();
     }
