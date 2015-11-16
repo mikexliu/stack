@@ -4,6 +4,10 @@
 .settings/
 target/
 
+# idea
+.idea/
+resources.iml
+
 # linux
 *~
 
