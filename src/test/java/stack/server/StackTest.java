@@ -1,18 +1,16 @@
 package stack.server;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.UUID;
-
+import com.fasterxml.jackson.databind.JsonMappingException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import com.fasterxml.jackson.databind.JsonMappingException;
-
 import stack.helper.StackTestServer;
+
+import java.util.UUID;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Functional tests
@@ -95,6 +93,6 @@ public class StackTest {
 
         StackTestServer.readSecondResource(_id);
     }
-    
+
     // TODO: make tests that "conflict" resources
 }

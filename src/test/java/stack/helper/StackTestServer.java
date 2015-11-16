@@ -1,15 +1,5 @@
 package stack.helper;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteStreams;
 import com.google.inject.AbstractModule;
@@ -17,9 +7,14 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
-
 import example.MyItem;
 import stack.server.Stack;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+
+import static org.junit.Assert.assertEquals;
 
 public class StackTestServer {
 

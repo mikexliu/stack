@@ -1,18 +1,16 @@
 package example.container.v1;
 
-import java.util.Map;
-import java.util.UUID;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import example.Main;
+import example.MyItem;
+import example.resource.v1.FirstResource;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-
-import example.Main;
-import example.MyItem;
-import example.resource.v1.FirstResource;
+import java.util.Map;
+import java.util.UUID;
 
 public final class FirstContainer extends FirstResource {
 
@@ -36,7 +34,7 @@ public final class FirstContainer extends FirstResource {
     /**
      * If the item to update does not exist, returns 204
      * Otherwise, returns the object
-     * 
+     * <p>
      * This shows we can return non-Response, non-String objects.
      */
     @Override

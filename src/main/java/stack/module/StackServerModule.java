@@ -1,5 +1,16 @@
 package stack.module;
 
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.common.reflect.ClassPath;
+import com.google.inject.AbstractModule;
+import javassist.util.proxy.MethodFilter;
+import javassist.util.proxy.MethodHandler;
+import javassist.util.proxy.ProxyFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.Path;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -10,22 +21,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.Path;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.common.reflect.ClassPath;
-import com.google.inject.AbstractModule;
-
-import javassist.util.proxy.MethodFilter;
-import javassist.util.proxy.MethodHandler;
-import javassist.util.proxy.ProxyFactory;
-
 /**
- * 
+ *
  */
 public class StackServerModule extends AbstractModule {
 
@@ -122,7 +119,7 @@ public class StackServerModule extends AbstractModule {
         }
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private final Object bindContainer(final Class container) {
         try {
             final Object containerInstance = container.newInstance();
@@ -134,27 +131,19 @@ public class StackServerModule extends AbstractModule {
         }
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private final Object bindResource(final Object containerInstance, Class resource) {
         final ProxyFactory factory = new ProxyFactory();
         factory.setSuperclass(resource);
-        factory.setFilter(new MethodFilter() {
-            @Override
-            public boolean isHandled(Method method) {
-                return Modifier.isAbstract(method.getModifiers());
-            }
-        });
+        factory.setFilter(method -> Modifier.isAbstract(method.getModifiers()));
 
-        final MethodHandler handler = new MethodHandler() {
-            @Override
-            public Object invoke(Object b, Method thisMethod, Method proceed, Object[] args) throws Throwable {
-                final Method containerMethod = resourceToContainer.get(thisMethod);
-                if (containerMethod != null) {
-                    return containerMethod.invoke(containerInstance, args);
-                } else {
-                    throw new IllegalAccessException(
-                            thisMethod + " is not implemented in " + containerInstance.getClass() + " via interface");
-                }
+        final MethodHandler handler = (b, thisMethod, proceed, args) -> {
+            final Method containerMethod = resourceToContainer.get(thisMethod);
+            if (containerMethod != null) {
+                return containerMethod.invoke(containerInstance, args);
+            } else {
+                throw new IllegalAccessException(
+                        thisMethod + " is not implemented in " + containerInstance.getClass() + " via interface");
             }
         };
 

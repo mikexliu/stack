@@ -1,27 +1,20 @@
 package stack.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
 import example.MyItem;
 import example.resource.v1.FirstResource;
 import example.resource.v2.SecondResource;
+import org.junit.*;
+import org.junit.rules.ExpectedException;
 import stack.helper.StackTestServer;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class StackClientTest {
 
-    private StackClient stackClient;
-
     @Rule
     public ExpectedException exceptedException = ExpectedException.none();
+    private StackClient stackClient;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -60,7 +53,7 @@ public class StackClientTest {
 
         final MyItem updatedItem = myResourceClient.read(id);
         assertEquals(readItem.data, updatedItem.data);
-        
+
         myResourceClient.delete(updatedItem._id);
         final MyItem deletedItem = myResourceClient.read(id);
         assertEquals(null, deletedItem);
@@ -83,7 +76,7 @@ public class StackClientTest {
 
         final MyItem updatedItem = myResourceClient.read(id);
         assertEquals(readItem.data, updatedItem.data);
-        
+
         myResourceClient.delete(updatedItem._id);
         final MyItem deletedItem = myResourceClient.read(id);
         assertEquals(null, deletedItem);
