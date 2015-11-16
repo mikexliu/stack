@@ -92,7 +92,7 @@ public class StackClient {
             final String formattedPath = getFormattedPath(unformattedPath, thisMethod, args);
             final URI uri = new URI(formattedPath).normalize();
 
-            final Set<Object> remainingParameters = Arrays.asList(args).stream().filter(arg -> arg != null).collect(Collectors.toSet());
+            final Set<Object> remainingParameters = Arrays.asList(args).stream().filter(arg -> arg != Void.TYPE).collect(Collectors.toSet());
 
             // figure out the entity, if any
             Preconditions.checkState(remainingParameters.size() == 0 || remainingParameters.size() == 1,
@@ -175,13 +175,13 @@ public class StackClient {
                     final String encodedKey = URLEncoder.encode(pathParam.value(), "UTF-8");
                     final String encodedValue = URLEncoder.encode(argument.toString(), "UTF-8");
                     pathParameters.put(encodedKey, encodedValue);
-                    args[i] = null;
+                    args[i] = Void.TYPE;
                 } else if (parameterAnnotation instanceof QueryParam) {
                     final QueryParam queryParam = QueryParam.class.cast(parameterAnnotation);
                     final String encodedKey = URLEncoder.encode(queryParam.value(), "UTF-8");
                     final String encodedValue = URLEncoder.encode(argument.toString(), "UTF-8");
                     queryParameters.put(encodedKey, encodedValue);
-                    args[i] = null;
+                    args[i] = Void.TYPE;
                 }
             }
         }
