@@ -251,11 +251,14 @@ Once a `resource` and a `container` class are found, they are wired together aut
 `http://localhost:5555/docs` should now be accessible with all resources defined.
 
 ##Future
+* simple persistence (local file store, blob store, efficiency is not concerned)
+* authentication
+* metrics generation (which library to use? configurable?)
+* remove guice requirement (might be difficult..)
+
+##Technical Goals
 * proxy client class
   * auto generated
-  * auto pagination for long return values
   * configurable timeouts
-* persistence
-* authentication
-* metrics generation
-
+* auto pagination
+  * lazy return map so we can get key/value without returning the entire map

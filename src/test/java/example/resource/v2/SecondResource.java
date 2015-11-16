@@ -16,7 +16,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 
-@Api(value = "my-resource")
+@Api(value = "v2/my-resource")
 @Path("/api/v2/my-resource")
 public abstract class SecondResource {
 

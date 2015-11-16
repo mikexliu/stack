@@ -16,7 +16,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 
-@Api(value = "my-resource")
+@Api(value = "v1/my-resource")
 @Path("/api/v1/my-resource")
 public abstract class FirstResource {
 

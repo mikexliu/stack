@@ -9,9 +9,6 @@ import java.util.Arrays;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 
@@ -20,8 +17,6 @@ import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 
 public class StackClient implements Closeable {
-
-    private static final Logger log = LoggerFactory.getLogger(StackClient.class);
 
     private static final ObjectMapper om = new ObjectMapper();
 
@@ -46,7 +41,13 @@ public class StackClient implements Closeable {
         Preconditions.checkNotNull(pathAnnotation,
                 "Class is not annotated with @Path. Only Classes with @Path annotation may generated a client.");
 
+        // TODO: should actually check for "/api" or whatever we've specified
         final String resource = pathAnnotation.value();
+        Preconditions.checkState(resource.startsWith("/"), "Client's @Path annotation is not set correctly. Must begin with /");
+        
+        final String uri = String.format("%s://%s:%s/%s", protocol, endpoint, port, resource);
+        
+        System.out.println(uri);
 
         final ProxyFactory factory = new ProxyFactory();
         factory.setSuperclass(resourceClass);
@@ -87,9 +88,9 @@ public class StackClient implements Closeable {
             throw new RuntimeException(e);
         }
     }
-    
+
     @Override
     public void close() {
-        // TODO:
+        // TODO: to be implemented
     }
 }

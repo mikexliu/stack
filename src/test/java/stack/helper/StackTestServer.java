@@ -67,6 +67,7 @@ public class StackTestServer {
         return port;
     }
 
+    // TODO: remove once we finish the client generating code (fully)
     private static Process curl(final String... args) throws IOException, InterruptedException {
         final List<String> curlArgs = new LinkedList<>();
         curlArgs.add("curl");
