@@ -9,21 +9,25 @@ import com.google.inject.Injector;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 
-import web.Stack;
+import stack.server.Stack;
 
+/**
+ * Example main method
+ */
 public class Main {
 
     public static void main(String[] args) throws Exception {
         final Injector injector = Guice.createInjector(new AbstractModule() {
 
-            /**
-             * Inject the data map into {@link MyContainer}.
-             */
             @Override
             protected void configure() {
-                final Map<String, MyItem> items = new HashMap<>();
+                final Map<String, MyItem> itemsv1 = new HashMap<>();
                 bind(new TypeLiteral<Map<String, MyItem>>() {
-                }).annotatedWith(Names.named("items")).toInstance(items);
+                }).annotatedWith(Names.named("itemsv1")).toInstance(itemsv1);
+
+                final Map<String, MyItem> itemsv2 = new HashMap<>();
+                bind(new TypeLiteral<Map<String, MyItem>>() {
+                }).annotatedWith(Names.named("itemsv2")).toInstance(itemsv2);
             }
         });
 

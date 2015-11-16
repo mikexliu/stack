@@ -1,4 +1,4 @@
-package example.container;
+package example.container.v1;
 
 import java.util.Map;
 import java.util.UUID;
@@ -12,15 +12,15 @@ import com.google.inject.name.Named;
 
 import example.Main;
 import example.MyItem;
-import example.resource.MyResource;
+import example.resource.v1.FirstResource;
 
-public final class MyContainer extends MyResource {
+public final class FirstContainer extends FirstResource {
 
     /**
      * This object is injected from the top-level injector in {@link Main}.
      */
     @Inject
-    @Named("items")
+    @Named("itemsv1")
     Map<String, MyItem> items;
 
     /**

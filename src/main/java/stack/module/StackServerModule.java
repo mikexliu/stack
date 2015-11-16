@@ -1,4 +1,4 @@
-package web;
+package stack.module;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -27,14 +27,15 @@ import javassist.util.proxy.ProxyFactory;
 /**
  * 
  */
-public class StackModule extends AbstractModule {
+public class StackServerModule extends AbstractModule {
 
-    private static final Logger log = LoggerFactory.getLogger(StackModule.class);
+    private static final Logger log = LoggerFactory.getLogger(StackServerModule.class);
 
-    private Map<Method, Method> resourceToContainer;
+    private Map<Method, Method> resourceToContainer = Maps.newHashMap();
 
     protected void configure() {
         // TODO: memory issues?
+        // TODO: maybe we'll be explicit about which packages and/or classes to load
         final Set<Class<?>> classes = new HashSet<>();
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
         try {
@@ -79,10 +80,6 @@ public class StackModule extends AbstractModule {
     }
 
     private final void bindResourceToContainer(final Class<?> resource, final Class<?> container) {
-        if (this.resourceToContainer == null) {
-            this.resourceToContainer = Maps.newHashMap();
-        }
-
         // TODO: this should not have non-abstract methods so we should throw
         // exception then
         final Set<Method> abstractMethods = Sets.newHashSet(resource.getMethods()).stream()

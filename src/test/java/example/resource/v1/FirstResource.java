@@ -1,4 +1,4 @@
-package example.resource;
+package example.resource.v1;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -17,8 +17,8 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 
 @Api(value = "my-resource")
-@Path("/api/my-resource")
-public abstract class MyResource {
+@Path("/api/v1/my-resource")
+public abstract class FirstResource {
 
     @ApiOperation(
             value = "create",

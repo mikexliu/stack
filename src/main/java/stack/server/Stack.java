@@ -1,4 +1,4 @@
-package web;
+package stack.server;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -45,6 +45,7 @@ import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
+import stack.module.StackServerModule;
 
 /**
  * TODO: use swagger-core annotations explicitly (remove BeanConfig and use
@@ -118,9 +119,9 @@ public class Stack {
         }
 
         if (injector != null) {
-            this.injector = injector.createChildInjector(new StackModule());
+            this.injector = injector.createChildInjector(new StackServerModule());
         } else {
-            this.injector = Guice.createInjector(new StackModule());
+            this.injector = Guice.createInjector(new StackServerModule());
         }
 
         if (this.injector.getExistingBinding(Key.get(ResponseThrowableHandler.class)) == null) {
