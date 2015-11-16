@@ -17,8 +17,10 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-// TODO: to be implemented
-@Api(value = "/v3/my-resource", description = "advanced resources with all parameter types")
+/**
+ * We can't actually pass in @Context here and therefore UriInfo is hard to pass in. What's the alternative (if any)?
+ */
+@Api(value = "/v3/my-resource", description = "advanced resource with all parameter types")
 @Path("/api/v3/my-resource")
 public abstract class ThirdResource {
 

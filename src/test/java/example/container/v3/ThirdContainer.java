@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import example.Main;
 import example.MyItem;
+import example.resource.v2.SecondResource;
 import example.resource.v3.ThirdResource;
 
 import javax.ws.rs.core.MediaType;

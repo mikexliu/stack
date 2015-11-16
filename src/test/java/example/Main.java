@@ -27,6 +27,10 @@ public class Main {
                 final Map<String, MyItem> itemsv2 = new HashMap<>();
                 bind(new TypeLiteral<Map<String, MyItem>>() {
                 }).annotatedWith(Names.named("itemsv2")).toInstance(itemsv2);
+
+                final Map<String, MyItem> itemsv3 = new HashMap<>();
+                bind(new TypeLiteral<Map<String, MyItem>>() {
+                }).annotatedWith(Names.named("itemsv3")).toInstance(itemsv3);
             }
         });
 

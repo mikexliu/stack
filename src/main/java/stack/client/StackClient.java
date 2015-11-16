@@ -36,7 +36,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
 public class StackClient {
 
     private static final Logger log = LoggerFactory.getLogger(StackClient.class);
@@ -75,7 +74,7 @@ public class StackClient {
 
         final MethodHandler handler = (object, thisMethod, proceed, args) -> {
 
-            // figure out what type of request this is
+            // determine the type of the request
             final boolean isPost = thisMethod.getAnnotation(POST.class) != null;
             final boolean isGet = thisMethod.getAnnotation(GET.class) != null;
             final boolean isPut = thisMethod.getAnnotation(PUT.class) != null;
@@ -87,38 +86,31 @@ public class StackClient {
                         + " must have exactly one from @POST, @GET, @PUT, @DELETE. Other operations are currently unsupported.");
             }
 
-            // figure out the unformatted resource path of the request
+            // determine the uri of the resource
             final String unformattedPath = getUnformattedPath(thisMethod, url);
             final String formattedPath = getFormattedPath(unformattedPath, thisMethod, args);
             final URI uri = new URI(formattedPath).normalize();
 
+            // TODO: once we introduce more parameter types, we can't mark out args here
+            // we need to think of a way to do this better, most likely an inner class is needed
+            // determine the entity, if any
             final Set<Object> remainingParameters = Arrays.asList(args).stream().filter(arg -> arg != Void.TYPE).collect(Collectors.toSet());
-
-            // figure out the entity, if any
             Preconditions.checkState(remainingParameters.size() == 0 || remainingParameters.size() == 1,
                     "Too many non-annotated arguments: " + remainingParameters);
             final Object entityObject;
             if (remainingParameters.size() == 1) {
                 entityObject = Iterables.getOnlyElement(remainingParameters);
             } else {
-                entityObject = "";
+                entityObject = Void.TYPE;
             }
 
             // build the request
             final MediaType consumesType = getConsumesType(thisMethod);
             final MediaType producesType = getProducesType(thisMethod);
             final WebTarget client = ClientBuilder.newClient().target(uri);
-            Builder builder;
-            if (producesType != null) {
-                builder = client.request(producesType);
-            } else {
-                builder = client.request();
-            }
+            final Builder builder = client.request(producesType).accept(consumesType);
 
-            if (consumesType != null) {
-                builder = builder.accept(consumesType);
-            }
-
+            // make the request
             if (isPost) {
                 return builder.post(Entity.entity(entityObject, consumesType), thisMethod.getReturnType());
             } else if (isGet) {
@@ -158,12 +150,13 @@ public class StackClient {
         // TODO: need to support: @MatrixParam, @HeaderParam,
         // @CookieParam, @FormParam
         // let's focus on path and query for now
+        // TODO: need to support @Context
 
         // figure out what each parameter is for
         final Map<String, String> pathParameters = new HashMap<>();
         final Map<String, String> queryParameters = new HashMap<>();
 
-        // TODO: need to support: non-String types (mapped to String)
+        // TODO: need to support: non-String types (mapped to String). use om
         // https://jersey.java.net/apidocs/2.22/jersey/javax/ws/rs/PathParam.html
         final Annotation[][] allParameterAnnotations = thisMethod.getParameterAnnotations();
         for (int i = 0; i < args.length; i++) {
@@ -186,7 +179,6 @@ public class StackClient {
             }
         }
 
-        // TODO: to be implemented:
         String formattedPath = unformattedPath;
         for (final Entry<String, String> pathParameterMapping : pathParameters.entrySet()) {
             formattedPath = formattedPath.replaceAll("\\{" + pathParameterMapping.getKey() + "\\}",
@@ -208,11 +200,11 @@ public class StackClient {
         if (consumesAnnotation != null) {
             final String[] consumesTypes = consumesAnnotation.value();
             if (consumesTypes.length == 0) {
-                log.warn("No MediaType specified in @Consumes, using " + MediaType.WILDCARD_TYPE);
+                log.warn("No MediaType specified in @Consumes. Defaulting to: " + MediaType.WILDCARD_TYPE);
                 consumesType = MediaType.WILDCARD_TYPE;
             } else {
                 if (consumesTypes.length > 1) {
-                    log.warn("Only one @Consume MediaType is supported. Using " + consumesTypes[0]);
+                    log.warn("Only one @Consume MediaType is supported. Using first: " + consumesTypes[0]);
                 }
                 consumesType = MediaType.valueOf(consumesTypes[0]);
             }
@@ -228,11 +220,11 @@ public class StackClient {
         if (producesAnnotation != null) {
             final String[] producesTypes = producesAnnotation.value();
             if (producesTypes.length == 0) {
-                log.warn("No MediaType specified in @Produces, using " + MediaType.WILDCARD_TYPE);
+                log.warn("No MediaType specified in @Produces. Defaulting to: " + MediaType.WILDCARD_TYPE);
                 producesType = MediaType.WILDCARD_TYPE;
             } else {
                 if (producesTypes.length > 1) {
-                    log.warn("Only one @Produces MediaType is supported. Using " + producesTypes[0]);
+                    log.warn("Only one @Produces MediaType is supported. Using first: " + producesTypes[0]);
                 }
                 producesType = MediaType.valueOf(producesTypes[0]);
             }
