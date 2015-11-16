@@ -16,7 +16,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Api(value = "v1/my-resource")
+@Api(value = "/v1/my-resource", description = "simple resources with path parameters")
 @Path("/api/v1/my-resource")
 public abstract class FirstResource {
 

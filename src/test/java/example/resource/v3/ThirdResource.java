@@ -17,7 +17,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Api(value = "v3/my-resource")
+// TODO: to be implemented
+@Api(value = "/v3/my-resource", description = "advanced resources with all parameter types")
 @Path("/api/v3/my-resource")
 public abstract class ThirdResource {
 

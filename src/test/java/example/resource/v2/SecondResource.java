@@ -17,7 +17,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Api(value = "v2/my-resource")
+@Api(value = "/v2/my-resource", description = "simple resources with path and query parameters")
 @Path("/api/v2/my-resource")
 public abstract class SecondResource {
 
