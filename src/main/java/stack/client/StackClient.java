@@ -1,12 +1,18 @@
 package stack.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
-import javassist.util.proxy.MethodHandler;
-import javassist.util.proxy.ProxyFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -22,19 +28,16 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
+
+import javassist.util.proxy.MethodHandler;
+import javassist.util.proxy.ProxyFactory;
 
 public class StackClient {
 
@@ -91,10 +94,13 @@ public class StackClient {
             final String formattedPath = getFormattedPath(unformattedPath, thisMethod, args);
             final URI uri = new URI(formattedPath).normalize();
 
-            // TODO: once we introduce more parameter types, we can't mark out args here
-            // we need to think of a way to do this better, most likely an inner class is needed
-            // determine the entity, if any
-            final Set<Object> remainingParameters = Arrays.asList(args).stream().filter(arg -> arg != Void.TYPE).collect(Collectors.toSet());
+            // TODO: once we introduce more parameter types, we can't mark out
+            // args here we need to think of a way to do this better, most
+            // likely an inner class is needed determine the entity, if any.
+            // this just finds the last non-annotated argument and we will use
+            // it as the entity to be consumed
+            final Set<Object> remainingParameters = Arrays.asList(args).stream().filter(arg -> arg != Void.TYPE)
+                    .collect(Collectors.toSet());
             Preconditions.checkState(remainingParameters.size() == 0 || remainingParameters.size() == 1,
                     "Too many non-annotated arguments: " + remainingParameters);
             final Object entityObject;
@@ -133,7 +139,6 @@ public class StackClient {
         }
     }
 
-
     private String getUnformattedPath(final Method thisMethod, final String url) {
         final Path methodPathAnnotation = thisMethod.getAnnotation(Path.class);
         final String unformattedPath;
@@ -146,7 +151,8 @@ public class StackClient {
         return unformattedPath;
     }
 
-    private String getFormattedPath(final String unformattedPath, final Method thisMethod, final Object[] args) throws Throwable {
+    private String getFormattedPath(final String unformattedPath, final Method thisMethod, final Object[] args)
+            throws Throwable {
         // TODO: need to support: @MatrixParam, @HeaderParam,
         // @CookieParam, @FormParam
         // let's focus on path and query for now

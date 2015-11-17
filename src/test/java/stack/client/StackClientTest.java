@@ -1,45 +1,37 @@
 package stack.client;
 
-import example.MyItem;
-import example.resource.v1.FirstResource;
-import example.resource.v2.SecondResource;
-import example.resource.v3.ThirdResource;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import stack.helper.StackTestServer;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class StackClientTest {
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-    @Rule
-    public ExpectedException exceptedException = ExpectedException.none();
-    private StackClient stackClient;
+import example.MyItem;
+import example.helper.StackServer;
+import example.resource.v1.FirstResource;
+import example.resource.v2.SecondResource;
+import example.resource.v3.ThirdResource;
+
+public class StackClientTest {
+    
+    private static String endpoint = "localhost";
+    private static int port = 5555;
+
+    private static StackClient stackClient;
+    private static StackServer stackServer;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        StackTestServer.start();
+        stackServer = new StackServer(port);
+        stackServer.start();
+        
+        stackClient = new StackClient("http", endpoint, port);
     }
 
     @AfterClass
     public static void afterClass() throws Exception {
-        StackTestServer.stop();
-    }
-
-    @Before
-    public void before() {
-        stackClient = new StackClient("http", "localhost", StackTestServer.getPort());
-    }
-
-    @After
-    public void after() {
-        stackClient = null;
+        stackServer.stop();
     }
 
     @Test

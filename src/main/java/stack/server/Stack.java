@@ -1,20 +1,20 @@
 package stack.server;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.Scopes;
-import com.google.inject.servlet.GuiceFilter;
-import com.google.inject.servlet.GuiceServletContextListener;
-import com.google.inject.servlet.ServletModule;
-import com.sun.jersey.api.core.PackagesResourceConfig;
-import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
-import io.swagger.jaxrs.config.BeanConfig;
-import io.swagger.jaxrs.listing.ApiListingResource;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.servlet.DispatcherType;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.ext.ExceptionMapper;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -28,21 +28,24 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import stack.module.StackServerModule;
 
-import javax.servlet.DispatcherType;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.ext.ExceptionMapper;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.Scopes;
+import com.google.inject.servlet.GuiceFilter;
+import com.google.inject.servlet.GuiceServletContextListener;
+import com.google.inject.servlet.ServletModule;
+import com.sun.jersey.api.core.PackagesResourceConfig;
+import com.sun.jersey.api.json.JSONConfiguration;
+import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
+
+import io.swagger.jaxrs.config.BeanConfig;
+import io.swagger.jaxrs.listing.ApiListingResource;
+import stack.module.StackServerModule;
 
 /**
  * TODO: use swagger-core annotations explicitly (remove BeanConfig and use

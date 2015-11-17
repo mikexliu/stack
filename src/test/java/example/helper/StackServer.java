@@ -1,21 +1,22 @@
-package example;
+package example.helper;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
+
+import example.MyItem;
 import stack.server.Stack;
 
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * Example main method
- */
-public class Main {
-
-    public static void main(String[] args) throws Exception {
+public class StackServer {
+    
+    private final Stack stack;
+    
+    public StackServer(final int port) throws Exception {
         final Injector injector = Guice.createInjector(new AbstractModule() {
 
             @Override
@@ -34,6 +35,18 @@ public class Main {
             }
         });
 
-        new Stack(injector).start();
+        stack = new Stack(injector);
+    }
+    
+    public void start() throws Exception {
+        if (stack != null) {
+            stack.start();
+        }
+    }
+
+    public void stop() throws Exception {
+        if (stack != null) {
+            stack.stop();
+        }
     }
 }

@@ -1,15 +1,5 @@
 package stack.module;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.common.reflect.ClassPath;
-import com.google.inject.AbstractModule;
-import javassist.util.proxy.MethodHandler;
-import javassist.util.proxy.ProxyFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.Path;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,6 +9,19 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.ws.rs.Path;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.common.reflect.ClassPath;
+import com.google.inject.AbstractModule;
+
+import javassist.util.proxy.MethodHandler;
+import javassist.util.proxy.ProxyFactory;
 
 /**
  *

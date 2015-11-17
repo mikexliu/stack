@@ -1,16 +1,18 @@
 package example.container.v2;
 
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import example.Main;
-import example.MyItem;
-import example.resource.v2.SecondResource;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.util.Map;
-import java.util.UUID;
+
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+
+import example.MyItem;
+import example.main.Main;
+import example.resource.v2.SecondResource;
 
 public final class SecondContainer extends SecondResource {
 
