@@ -1,34 +1,5 @@
 package stack.server;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.servlet.DispatcherType;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.ext.ExceptionMapper;
-
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.resource.Resource;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -42,10 +13,36 @@ import com.google.inject.servlet.ServletModule;
 import com.sun.jersey.api.core.PackagesResourceConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
-
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.resource.Resource;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import stack.module.StackServerModule;
+
+import javax.servlet.DispatcherType;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.ext.ExceptionMapper;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * TODO: use swagger-core annotations explicitly (remove BeanConfig and use
@@ -134,7 +131,7 @@ public class Stack {
             responseThrowableHandler = this.injector.getInstance(ResponseThrowableHandler.class);
         }
 
-        this.server = new Server(Integer.parseInt(Stack.properties.getProperty("port")));
+        this.server = new Server(Integer.parseInt(Stack.properties.get("port").toString()));
     }
 
     public void start() throws Exception {
@@ -223,6 +220,14 @@ public class Stack {
         return swaggerUIContext;
     }
 
+    /**
+     * Interface to provide a custom exception handler for
+     * JsonProcessingExceptions
+     */
+    public interface ResponseThrowableHandler {
+        Response handleThrowable(final Throwable throwable);
+    }
+
     private static class ResponseThrowableMapper implements ExceptionMapper<Throwable> {
 
         private final ResponseThrowableHandler responseTHrowableHandler;
@@ -235,13 +240,5 @@ public class Stack {
         public Response toResponse(final Throwable throwable) {
             return responseTHrowableHandler.handleThrowable(throwable);
         }
-    }
-
-    /**
-     * Interface to provide a custom exception handler for
-     * JsonProcessingExceptions
-     */
-    public static interface ResponseThrowableHandler {
-        public Response handleThrowable(final Throwable throwable);
     }
 }

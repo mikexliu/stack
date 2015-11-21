@@ -1,18 +1,12 @@
 package stack.client;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
+import javassist.util.proxy.MethodHandler;
+import javassist.util.proxy.ProxyFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -28,17 +22,24 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
-
-import javassist.util.proxy.MethodHandler;
-import javassist.util.proxy.ProxyFactory;
-
+/**
+ * StackClient only retrieves the endpoint; it has no concept of the resource at the endpoint. That must be retrieved with getClient.
+ */
 public class StackClient {
 
     private static final Logger log = LoggerFactory.getLogger(StackClient.class);
@@ -60,16 +61,25 @@ public class StackClient {
         this.port = port;
     }
 
+    public StackClient(final URL url) {
+        this(url.getProtocol(), url.getHost(), url.getPort());
+    }
+
     public <T> T getClient(final Class<T> resourceClass) {
         final Path resourcePathAnnotation = resourceClass.getDeclaredAnnotation(Path.class);
         Preconditions.checkNotNull(resourcePathAnnotation,
-                "Class is not annotated with @Path. Only Classes with @Path annotation may generated a client.");
+                "Class is not annotated with @Path. Only Classes with @Path annotation may generate a client without explicit endpoint.");
 
         // TODO: should actually check for "api" or whatever we've specified
         // TODO: note that "/" are not required by jersey
         final String resource = resourcePathAnnotation.value();
 
         final String url = String.format("%s://%s:%s/%s", protocol, endpoint, port, resource);
+        return getClient(resourceClass, url);
+    }
+
+    public <T> T getClient(final Class<T> resourceClass, final String url) {
+        // TODO: verify the url with the protocol, endpoint, and port
 
         final ProxyFactory factory = new ProxyFactory();
         factory.setSuperclass(resourceClass);
@@ -115,6 +125,8 @@ public class StackClient {
             final MediaType producesType = getProducesType(thisMethod);
             final WebTarget client = ClientBuilder.newClient().target(uri);
             final Builder builder = client.request(producesType).accept(consumesType);
+
+            System.out.println("Making a remote request: " + uri);
 
             // make the request
             if (isPost) {

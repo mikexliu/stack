@@ -1,11 +1,11 @@
-package stack.client;
+package stack.server;
 
 import example.MyItem;
 import example.helper.StackClientHelper;
 import example.helper.StackServerHelper;
-import example.resource.v2.SecondResource;
-import example.resource.v3.ThirdResource;
+import example.resource.v1.FirstResource;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -13,10 +13,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-public class StackClientTest {
+public class ProxyStackTest {
 
     private static final String protocol = "http";
     private static final String endpoint = "localhost";
@@ -42,9 +39,9 @@ public class StackClientTest {
     }
 
     @Test
-    public void testSecondResource() {
-        final SecondResource myResourceClient = stackClientHelper.getClient("local").getClient(SecondResource.class);
-        assertNotNull(myResourceClient);
+    public void testFirstResource() {
+        final FirstResource myResourceClient = stackClientHelper.getClient("local").getClient(FirstResource.class);
+        Assert.assertNotNull(myResourceClient);
 
         final MyItem myItem = new MyItem();
         myItem.data = "data";
@@ -54,36 +51,13 @@ public class StackClientTest {
         final MyItem readItem = myResourceClient.read(id);
 
         readItem.data = "new data";
-        myResourceClient.update(readItem._id, readItem.data);
+        myResourceClient.update(readItem._id, readItem);
 
         final MyItem updatedItem = myResourceClient.read(id);
-        assertEquals(readItem.data, updatedItem.data);
+        Assert.assertEquals(readItem.data, updatedItem.data);
 
         myResourceClient.delete(updatedItem._id);
         final MyItem deletedItem = myResourceClient.read(id);
-        assertEquals(null, deletedItem);
-    }
-
-    @Test
-    public void testThirdResource() {
-        final ThirdResource myResourceClient = stackClientHelper.getClient("local").getClient(ThirdResource.class);
-        assertNotNull(myResourceClient);
-
-        final MyItem myItem = new MyItem();
-        myItem.data = "data";
-
-        final String id = myResourceClient.create(myItem);
-
-        final MyItem readItem = myResourceClient.read(id);
-
-        readItem.data = "new data";
-        myResourceClient.update(readItem._id, readItem.data);
-
-        final MyItem updatedItem = myResourceClient.read(id);
-        assertEquals(readItem.data, updatedItem.data);
-
-        myResourceClient.delete(updatedItem._id);
-        final MyItem deletedItem = myResourceClient.read(id);
-        assertEquals(null, deletedItem);
+        Assert.assertEquals(null, deletedItem);
     }
 }

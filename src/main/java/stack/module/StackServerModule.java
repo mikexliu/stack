@@ -1,27 +1,30 @@
 package stack.module;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.Path;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.reflect.ClassPath;
 import com.google.inject.AbstractModule;
-
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import stack.annotations.Remote;
+import stack.client.StackClient;
+
+import javax.ws.rs.Path;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -30,11 +33,17 @@ public class StackServerModule extends AbstractModule {
 
     private static final Logger log = LoggerFactory.getLogger(StackServerModule.class);
 
-    private Map<Method, Method> resourceToContainer = Maps.newHashMap();
+    private final Map<Method, Method> resourceToContainer;
+
+    private final String[] packages;
+
+    public StackServerModule(final String... packages) {
+        this.packages = packages;
+        this.resourceToContainer = Maps.newHashMap();
+    }
 
     protected void configure() {
-        // TODO: memory issues?
-        // TODO: maybe we'll be explicit about which packages and/or classes to load
+        // TODO: use packages
         final Set<Class<?>> classes = new HashSet<>();
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
         try {
@@ -124,11 +133,24 @@ public class StackServerModule extends AbstractModule {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private final Object bindContainer(final Class container) {
         try {
-            final Object containerInstance = container.newInstance();
-            requestInjection(containerInstance);
-            bind(container).toInstance(container.cast(containerInstance));
-            return containerInstance;
-        } catch (InstantiationException | IllegalAccessException e) {
+            if (!container.isAnnotationPresent(Remote.class)) {
+                final Object containerInstance = container.newInstance();
+                requestInjection(containerInstance);
+                bind(container).toInstance(container.cast(containerInstance));
+                return containerInstance;
+            } else {
+                // TODO: this should be moved to below bindResource;we should not invoke containers directly ever, should invoke stackClient always
+                System.out.println("Binding Remote Container: " + container);
+                final Annotation remoteAnnotation = container.getAnnotation(Remote.class);
+                final String endpoint = Remote.class.cast(remoteAnnotation).endpoint();
+
+                final StackClient stackClient = new StackClient(new URL(endpoint));
+                final Object containerInstance = container.cast(stackClient.getClient(container, endpoint));
+                bind(container).toInstance(containerInstance);
+                System.out.println("Created Remote Container: " + containerInstance);
+                return containerInstance;
+            }
+        } catch (InstantiationException | IllegalAccessException | MalformedURLException e) {
             throw new RuntimeException(e);
         }
     }
@@ -142,6 +164,9 @@ public class StackServerModule extends AbstractModule {
         final MethodHandler handler = (b, thisMethod, proceed, args) -> {
             final Method containerMethod = resourceToContainer.get(thisMethod);
             if (containerMethod != null) {
+
+                System.out.println("Invoked " + containerMethod + " on " + containerInstance + " with " + Arrays.asList(args));
+
                 return containerMethod.invoke(containerInstance, args);
             } else {
                 throw new IllegalAccessException(

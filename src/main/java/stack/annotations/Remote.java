@@ -1,9 +1,11 @@
 package stack.annotations;
 
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Paginate {
-    int maxNumberResults() default 25;
+@Inherited
+public @interface Remote {
+    String endpoint() default "";
 }

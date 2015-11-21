@@ -1,10 +1,10 @@
 package example.main;
 
-import example.helper.StackServer;
+import example.helper.StackServerHelper;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        new StackServer(5555).start(); 
+        new StackServerHelper(5555).start();
     }
 }

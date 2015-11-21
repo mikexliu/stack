@@ -1,20 +1,18 @@
 package example.container.v3;
 
-import java.util.Map;
-import java.util.UUID;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-
 import example.MyItem;
 import example.main.Main;
 import example.resource.v3.ThirdResource;
 
-public final class ThirdContainer extends ThirdResource {
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.Map;
+import java.util.UUID;
+
+public class ThirdContainer extends ThirdResource {
 
     /**
      * This object is injected from the top-level injector in {@link Main}.

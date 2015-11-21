@@ -1,5 +1,11 @@
 package example.resource.v1;
 
+import example.MyItem;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import stack.annotations.Remote;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -11,11 +17,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import example.MyItem;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-
+@Remote(endpoint = "http://localhost:5556/api/v2/my-resource")
 @Api(value = "/v1/my-resource", description = "simple resources with path parameters")
 @Path("/api/v1/my-resource")
 public abstract class FirstResource {
