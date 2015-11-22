@@ -46,6 +46,8 @@ public class ProxyStackTest {
 
     @Test
     public void testUserResource() {
+        // TODO: this is slightly confusing; this is how the requests are made
+        // StackClient(local) -> RemoteResource(local) -> StackClient(remote) -> Endpoint
         final RemoteResource myResourceClient = stackClientHelper.getClient("remote").getClient(RemoteResource.class);
         Assert.assertNotNull(myResourceClient);
 

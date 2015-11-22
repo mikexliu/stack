@@ -4,7 +4,7 @@ Build your own REST endpoint right out of the box without worrying about how it'
 * `guice` dependency injection
 * `jersey` rest annotations
 * `swagger-ui` describe your rest api
-* `jetty` webserver that hosts `swagger-ui`
+* `jetty` web server that hosts `swagger-ui`
 
 ##Usage
 There are two primary ways of using `stack`: local and remote.
@@ -176,7 +176,7 @@ Remote is used if you want to expose an existing REST endpoint with `swagger-ui`
 legacy code and don't want to figure out how to add `swagger` on top of it; instead, just write up the specifications and
 let `stack` make the calls for you while also providing `swagger-ui` interface.
 
-Definfe the `resource`. Note it has an `@Remote` annotation. The example comes directly from
+Define the `resource`. Note it has an `@Remote` annotation. The example comes directly from
 https://github.com/swagger-api/swagger-samples/blob/master/java/java-jersey-jaxrs/src/main/java/io/swagger/sample/resource/UserResource.java
 ```java
 package example.resource.petstore;
