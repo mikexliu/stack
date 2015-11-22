@@ -3,7 +3,7 @@ package stack.server;
 import example.data.User;
 import example.helper.StackClientHelper;
 import example.helper.StackServerHelper;
-import example.resource.petstore.UserResource;
+import example.resource.petstore.RemoteResource;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -46,7 +46,7 @@ public class ProxyStackTest {
 
     @Test
     public void testUserResource() {
-        final UserResource myResourceClient = stackClientHelper.getClient("remote").getClient(UserResource.class);
+        final RemoteResource myResourceClient = stackClientHelper.getClient("remote").getClient(RemoteResource.class);
         Assert.assertNotNull(myResourceClient);
 
         User user = new User();
