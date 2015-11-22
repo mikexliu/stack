@@ -23,6 +23,10 @@ import java.util.Date;
 import java.util.List;
 
 /**
+ * This class has no corresponding implementation locally. The implementation is defined
+ * by the @Remote annotation and is hosted elsewhere. This resource serves as a proxy to
+ * the remote implementation and provides a swagger-ui for it locally.
+ *
  * Source:
  * https://github.com/swagger-api/swagger-samples/blob/master/java/java-jersey-jaxrs/src/main/java/io/swagger/sample/resource/UserResource.java
  */

@@ -1,9 +1,9 @@
 package stack.server;
 
-import example.data.MyItem;
+import example.data.User;
 import example.helper.StackClientHelper;
 import example.helper.StackServerHelper;
-import example.resource.v1.FirstResource;
+import example.resource.petstore.UserResource;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -13,6 +13,12 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
+
+/**
+ * This class requires access to the internet to pass since it is making a remote call.
+ * TODO: use local resources to test this
+ */
 public class ProxyStackTest {
 
     private static final String protocol = "http";
@@ -39,25 +45,27 @@ public class ProxyStackTest {
     }
 
     @Test
-    public void testFirstResource() {
-        final FirstResource myResourceClient = stackClientHelper.getClient("remote").getClient(FirstResource.class);
+    public void testUserResource() {
+        final UserResource myResourceClient = stackClientHelper.getClient("remote").getClient(UserResource.class);
         Assert.assertNotNull(myResourceClient);
 
-        final MyItem myItem = new MyItem();
-        myItem.data = "data";
+        User user = new User();
+        user.id = 0;
+        user.username = "username";
+        user.firstName = "firstName";
+        user.lastName = "lastName";
 
-        final String id = myResourceClient.create(myItem);
+        myResourceClient.createUser(user);
 
-        final MyItem readItem = myResourceClient.read(id);
+        User readUser = myResourceClient.getUserByName("username").readEntity(User.class);
+        assertEquals(user.firstName, readUser.firstName);
+        assertEquals(user.lastName, readUser.lastName);
 
-        readItem.data = "new data";
-        myResourceClient.update(readItem._id, readItem);
+        user.lastName = "changedLastName";
+        myResourceClient.updateUser("username", user);
 
-        final MyItem updatedItem = myResourceClient.read(id);
-        Assert.assertEquals(readItem.data, updatedItem.data);
-
-        myResourceClient.delete(updatedItem._id);
-        final MyItem deletedItem = myResourceClient.read(id);
-        Assert.assertEquals(null, deletedItem);
+        readUser = myResourceClient.getUserByName("username").readEntity(User.class);
+        assertEquals(user.firstName, readUser.firstName);
+        assertEquals("changedLastName", readUser.lastName);
     }
 }

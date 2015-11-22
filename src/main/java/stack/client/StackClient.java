@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 /**
  * StackClient only retrieves the endpoint; it has no concept of the resource at the endpoint. That must be retrieved with getClient.
+ * TODO: make this better and/or better rename; should just directly use the resource as the input, not just endpoint
  */
 public class StackClient {
 
@@ -132,7 +133,7 @@ public class StackClient {
                 firstConsumesType = MediaType.APPLICATION_JSON_TYPE;
             } else {
                 if (consumesType.length > 1) {
-                    log.debug("Found @Consumes " + Arrays.asList(consumesType) + " values; default to " + consumesType[0]);
+                    log.debug("Found @Consumes " + Arrays.asList(consumesType) + " values; defaulting to " + consumesType[0]);
                 }
                 firstConsumesType = consumesType[0];
             }
