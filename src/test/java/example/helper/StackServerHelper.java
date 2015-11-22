@@ -23,15 +23,7 @@ public class StackServerHelper {
             protected void configure() {
                 final Map<String, MyItem> itemsv1 = new HashMap<>();
                 bind(new TypeLiteral<Map<String, MyItem>>() {
-                }).annotatedWith(Names.named("itemsv1")).toInstance(itemsv1);
-
-                final Map<String, MyItem> itemsv2 = new HashMap<>();
-                bind(new TypeLiteral<Map<String, MyItem>>() {
-                }).annotatedWith(Names.named("itemsv2")).toInstance(itemsv2);
-
-                final Map<String, MyItem> itemsv3 = new HashMap<>();
-                bind(new TypeLiteral<Map<String, MyItem>>() {
-                }).annotatedWith(Names.named("itemsv3")).toInstance(itemsv3);
+                }).annotatedWith(Names.named("items")).toInstance(itemsv1);
             }
         });
 

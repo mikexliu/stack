@@ -1,10 +1,10 @@
-package example.container.v3;
+package example.container.v1;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import example.data.MyItem;
 import example.main.Main;
-import example.resource.v3.ThirdResource;
+import example.resource.v1.LocalResource;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -12,13 +12,13 @@ import javax.ws.rs.core.Response.Status;
 import java.util.Map;
 import java.util.UUID;
 
-public class ThirdContainer extends ThirdResource {
+public class LocalContainer extends LocalResource {
 
     /**
      * This object is injected from the top-level injector in {@link Main}.
      */
     @Inject
-    @Named("itemsv2")
+    @Named("items")
     Map<String, MyItem> items;
 
     /**
@@ -46,13 +46,12 @@ public class ThirdContainer extends ThirdResource {
      * If the item to update does not exist, return 404
      */
     @Override
-    public Response update(final String _id, final String data) {
+    public Response update(final String _id, final MyItem item) {
         if (!items.containsKey(_id)) {
             return Response.status(Status.NOT_FOUND).build();
         }
 
-        final MyItem item = items.get(_id);
-        item.data = data;
+        item._id = _id;
         items.put(_id, item);
         return Response.ok(item, MediaType.APPLICATION_JSON).build();
     }

@@ -1,4 +1,4 @@
-package example.resource.v2;
+package example.resource.v1;
 
 import example.data.MyItem;
 import io.swagger.annotations.Api;
@@ -13,14 +13,12 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-
-@Api(value = "/v2/my-resource", description = "simple resources with path and query parameters")
-@Path("/api/v2/my-resource")
-public abstract class SecondResource {
+@Api(value = "/v1/my-resource", description = "simple resources with path parameters")
+@Path("/api/v1/my-resource")
+public abstract class LocalResource {
 
     @ApiOperation(
             value = "create",
@@ -54,9 +52,8 @@ public abstract class SecondResource {
             @PathParam("_id")
             final String _id,
 
-            @ApiParam("data description")
-            @QueryParam("data")
-            final String data);
+            @ApiParam("item description")
+            final MyItem item);
 
     @ApiOperation(
             value = "delete",
