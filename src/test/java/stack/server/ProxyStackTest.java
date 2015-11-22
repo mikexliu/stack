@@ -24,11 +24,11 @@ public class ProxyStackTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        stackServerHelper = new StackServerHelper(port);
+        stackServerHelper = new StackServerHelper(port, "example.container,example.resource");
         stackServerHelper.start();
 
         final Map<String, URL> nameToEndpoint = new HashMap<>();
-        nameToEndpoint.put("local", new URL(String.format("%s://%s:%d", protocol, endpoint, port)));
+        nameToEndpoint.put("remote", new URL(String.format("%s://%s:%d", protocol, endpoint, port)));
 
         stackClientHelper = new StackClientHelper(nameToEndpoint);
     }
@@ -40,7 +40,7 @@ public class ProxyStackTest {
 
     @Test
     public void testFirstResource() {
-        final FirstResource myResourceClient = stackClientHelper.getClient("local").getClient(FirstResource.class);
+        final FirstResource myResourceClient = stackClientHelper.getClient("remote").getClient(FirstResource.class);
         Assert.assertNotNull(myResourceClient);
 
         final MyItem myItem = new MyItem();

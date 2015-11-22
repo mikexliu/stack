@@ -1,5 +1,7 @@
 package stack.module;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.reflect.ClassPath;
@@ -13,14 +15,12 @@ import stack.client.StackClient;
 
 import javax.ws.rs.Path;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -43,64 +43,61 @@ public class StackServerModule extends AbstractModule {
     }
 
     protected void configure() {
-        // TODO: use packages
         final Set<Class<?>> classes = new HashSet<>();
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
         try {
-            for (final ClassPath.ClassInfo info : ClassPath.from(loader).getTopLevelClasses()) {
-                try {
-                    final Class<?> classObject = info.load();
-                    if (classObject.isAnnotationPresent(Path.class)) {
-                        classes.add(classObject);
-                    } else if (!Object.class.equals(classObject) && !classObject.isInterface()
-                            && classObject.getSuperclass().isAnnotationPresent(Path.class)) {
-                        classes.add(classObject);
+            for (final String packageName : packages) {
+                for (final ClassPath.ClassInfo info : ClassPath.from(loader).getTopLevelClassesRecursive(packageName)) {
+                    try {
+                        final Class<?> classObject = info.load();
+                        log.info("Loaded " + classObject);
+                        if (classObject.isAnnotationPresent(Path.class)) {
+                            classes.add(classObject);
+                        } else if (!Object.class.equals(classObject) && !classObject.isInterface()
+                                && classObject.getSuperclass().isAnnotationPresent(Path.class)) {
+                            classes.add(classObject);
+                        }
+                    } catch (NoClassDefFoundError e) {
+                        // ignore
                     }
-                } catch (NoClassDefFoundError e) {
-                    // ignore
+                }
+            }
+
+            for (final Class<?> resource : classes) {
+                if (Modifier.isAbstract(resource.getModifiers())) {
+                    if (!resource.isAnnotationPresent(Remote.class)) {
+                        Class<?> container = null;
+                        for (final Class<?> clazz : classes) {
+                            if (resource.isAssignableFrom(clazz) && resource != clazz) {
+                                if (container == null) {
+                                    container = clazz;
+                                } else {
+                                    throw new IllegalStateException(
+                                            "Found multiple implementations of " + resource + " (can only accept one)");
+                                }
+                            }
+                        }
+                        if (container == null) {
+                            log.warn("Did not find an implementations of " + resource + "; ignoring");
+                        } else {
+                            bindResourceToLocalContainer(resource, container);
+                            log.info("Binding " + resource + " to " + container);
+                        }
+                    } else {
+                        final Remote remoteAnnotation = resource.getAnnotation(Remote.class);
+                        final String endpoint = remoteAnnotation.endpoint();
+                        if (Strings.isNullOrEmpty(endpoint)) {
+                            log.warn("Did not find an endpoint for " + resource + "; ignoring");
+                        } else {
+                            bindResourceToRemoteContainer(resource, endpoint);
+                            log.info("Binding " + resource + " to " + endpoint);
+                        }
+                    }
                 }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        for (final Class<?> resource : classes) {
-            if (Modifier.isAbstract(resource.getModifiers())) {
-                Class<?> container = null;
-                for (final Class<?> clazz : classes) {
-                    if (resource.isAssignableFrom(clazz) && resource != clazz) {
-                        if (container == null) {
-                            container = clazz;
-                        } else {
-                            throw new IllegalStateException(
-                                    "Found multiple implementations of " + resource + " (can only accept one)");
-                        }
-                    }
-                }
-                if (container == null) {
-                    log.warn("Found no implementations of " + resource + "; ignoring");
-                } else {
-                    log.info("Binding " + resource + " to " + container);
-                    bindResourceToContainer(resource, container);
-                }
-            }
-        }
-    }
-
-    private final void bindResourceToContainer(final Class<?> resource, final Class<?> container) {
-        // TODO: this should not have non-abstract methods so we should throw
-        // exception then
-        final Set<Method> abstractMethods = Sets.newHashSet(resource.getMethods()).stream()
-                .filter(method -> Modifier.isAbstract(method.getModifiers())).collect(Collectors.toSet());
-
-        for (final Method resourceMethod : abstractMethods) {
-            final Method containerMethod = findMatchingMethod(container, resourceMethod);
-            if (containerMethod != null) {
-                this.resourceToContainer.put(resourceMethod, containerMethod);
-            }
-        }
-
-        bindResource(bindContainer(container), resource);
     }
 
     private final Method findMatchingMethod(final Class<?> classType, final Method matchingMethod) {
@@ -133,30 +130,35 @@ public class StackServerModule extends AbstractModule {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private final Object bindContainer(final Class container) {
         try {
-            if (!container.isAnnotationPresent(Remote.class)) {
-                final Object containerInstance = container.newInstance();
-                requestInjection(containerInstance);
-                bind(container).toInstance(container.cast(containerInstance));
-                return containerInstance;
-            } else {
-                // TODO: this should be moved to below bindResource;we should not invoke containers directly ever, should invoke stackClient always
-                System.out.println("Binding Remote Container: " + container);
-                final Annotation remoteAnnotation = container.getAnnotation(Remote.class);
-                final String endpoint = Remote.class.cast(remoteAnnotation).endpoint();
-
-                final StackClient stackClient = new StackClient(new URL(endpoint));
-                final Object containerInstance = container.cast(stackClient.getClient(container, endpoint));
-                bind(container).toInstance(containerInstance);
-                System.out.println("Created Remote Container: " + containerInstance);
-                return containerInstance;
-            }
-        } catch (InstantiationException | IllegalAccessException | MalformedURLException e) {
+            final Object containerInstance = container.newInstance();
+            requestInjection(containerInstance);
+            bind(container).toInstance(container.cast(containerInstance));
+            return containerInstance;
+        } catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
 
+    private final void bindResourceToLocalContainer(final Class<?> resource, final Class<?> container) {
+        final Set<Method> nonAbstractMethods = Sets.newHashSet(resource.getMethods()).stream()
+                .filter(method -> !Modifier.isAbstract(method.getModifiers())).collect(Collectors.toSet());
+        Preconditions.checkState(!nonAbstractMethods.isEmpty(), "Found non-abstract methods in " + resource + ": " + nonAbstractMethods);
+
+        final Set<Method> abstractMethods = Sets.newHashSet(resource.getMethods()).stream()
+                .filter(method -> Modifier.isAbstract(method.getModifiers())).collect(Collectors.toSet());
+
+        for (final Method resourceMethod : abstractMethods) {
+            final Method containerMethod = findMatchingMethod(container, resourceMethod);
+            if (containerMethod != null) {
+                this.resourceToContainer.put(resourceMethod, containerMethod);
+            }
+        }
+
+        bindResourceToContainer(resource, bindContainer(container));
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private final Object bindResource(final Object containerInstance, Class resource) {
+    private final Object bindResourceToContainer(final Class resource, final Object containerInstance) {
         final ProxyFactory factory = new ProxyFactory();
         factory.setSuperclass(resource);
         factory.setFilter(method -> Modifier.isAbstract(method.getModifiers()));
@@ -164,9 +166,6 @@ public class StackServerModule extends AbstractModule {
         final MethodHandler handler = (b, thisMethod, proceed, args) -> {
             final Method containerMethod = resourceToContainer.get(thisMethod);
             if (containerMethod != null) {
-
-                System.out.println("Invoked " + containerMethod + " on " + containerInstance + " with " + Arrays.asList(args));
-
                 return containerMethod.invoke(containerInstance, args);
             } else {
                 throw new IllegalAccessException(
@@ -180,6 +179,24 @@ public class StackServerModule extends AbstractModule {
             return resourceInstance;
         } catch (NoSuchMethodException | IllegalArgumentException | InstantiationException | IllegalAccessException
                 | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final Object bindResourceToRemoteContainer(final Class resource, final String endpoint) {
+        try {
+            final Object client = new StackClient(new URL(endpoint)).getClient(resource, endpoint);
+            final ProxyFactory factory = new ProxyFactory();
+            factory.setSuperclass(resource);
+            factory.setFilter(method -> Modifier.isAbstract(method.getModifiers()));
+
+            final MethodHandler handler = (b, thisMethod, proceed, args) -> thisMethod.invoke(client, args);
+
+            final Object resourceInstance = resource.cast(factory.create(new Class<?>[0], new Object[0], handler));
+            bind(resource).toInstance(resource.cast(resourceInstance));
+            return resourceInstance;
+        } catch (NoSuchMethodException | IllegalArgumentException | InstantiationException | IllegalAccessException
+                | InvocationTargetException | MalformedURLException e) {
             throw new RuntimeException(e);
         }
     }

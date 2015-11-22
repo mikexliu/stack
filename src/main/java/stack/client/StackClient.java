@@ -126,8 +126,6 @@ public class StackClient {
             final WebTarget client = ClientBuilder.newClient().target(uri);
             final Builder builder = client.request(producesType).accept(consumesType);
 
-            System.out.println("Making a remote request: " + uri);
-
             // make the request
             if (isPost) {
                 return builder.post(Entity.entity(entityObject, consumesType), thisMethod.getReturnType());

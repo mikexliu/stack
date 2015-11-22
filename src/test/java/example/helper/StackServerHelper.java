@@ -16,7 +16,7 @@ public class StackServerHelper {
 
     private final Stack stack;
 
-    public StackServerHelper(final int port) throws Exception {
+    public StackServerHelper(final int port, final String packages) throws Exception {
         final Injector injector = Guice.createInjector(new AbstractModule() {
 
             @Override
@@ -35,10 +35,14 @@ public class StackServerHelper {
             }
         });
 
-        final Properties portOverride = new Properties();
-        portOverride.put("port", port);
+        final Properties properties = new Properties();
+        properties.put("port", port);
 
-        stack = new Stack(injector, portOverride);
+        // TODO: put this in a addPackage(..)
+        // TODO: put a addClass(..)
+        properties.put("packages", packages);
+
+        stack = new Stack(injector, properties);
     }
 
     public void start() throws Exception {

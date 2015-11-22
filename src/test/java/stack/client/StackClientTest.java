@@ -27,7 +27,7 @@ public class StackClientTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        stackServerHelper = new StackServerHelper(port);
+        stackServerHelper = new StackServerHelper(port, "example.container,example.resource");
         stackServerHelper.start();
 
         final Map<String, URL> nameToEndpoint = new HashMap<>();

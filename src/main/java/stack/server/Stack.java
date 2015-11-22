@@ -1,6 +1,7 @@
 package stack.server;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Guice;
@@ -112,8 +113,16 @@ public class Stack {
             Stack.properties.putAll(properties);
         }
 
+        final String[] packages;
+        if (!Stack.properties.containsKey("packages")) {
+            throw new IllegalStateException("Key 'packages' does not exist in Properties; contains: " + properties);
+        } else {
+            packages = Stack.properties.get("packages").toString().split(",");
+            Preconditions.checkState(packages.length != 0, "Key 'packages' must contain comma separated values");
+        }
+
         if (injector != null) {
-            this.injector = injector.createChildInjector(new StackServerModule());
+            this.injector = injector.createChildInjector(new StackServerModule(packages));
         } else {
             this.injector = Guice.createInjector(new StackServerModule());
         }
