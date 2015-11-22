@@ -175,8 +175,7 @@ public class StackClient {
 
     private String getFormattedPath(final String unformattedPath, final Method thisMethod, final Object[] args)
             throws Throwable {
-        // TODO: need to support: @MatrixParam, @HeaderParam,
-        // @CookieParam, @FormParam
+        // TODO: need to support: @MatrixParam, @HeaderParam, @CookieParam, @FormParam
         // let's focus on path and query for now
         // TODO: need to support @Context
 
