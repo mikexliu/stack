@@ -10,6 +10,9 @@ Build your own REST endpoint right out of the box without worrying about how it'
 There are two primary ways of using `stack`: local and remote.
 
 ###Local
+Local is used if you want to expose your own REST endpoint. The `swagger-ui` server would be on the same host (and same process)
+as the `container`.
+
 There are only two classes (and one main class) that need to be implemented to see everything in action:
 
 Define the `resource`. The class must be `abstract`. This is where the `jax-rs` and `swagger` specifications are.
@@ -169,6 +172,10 @@ public class Main {
 ```
 
 ###Remote
+Remote is used if you want to expose an existing REST endpoint with `swagger-ui`. This is especially useful if you have
+legacy code and don't want to figure out how to add `swagger` on top of it; instead, just write up the specifications and
+let `stack` make the calls for you while also providing `swagger-ui` interface.
+
 Definfe the `resource`. Note it has an `@Remote` annotation. The example comes directly from
 https://github.com/swagger-api/swagger-samples/blob/master/java/java-jersey-jaxrs/src/main/java/io/swagger/sample/resource/UserResource.java
 ```java
