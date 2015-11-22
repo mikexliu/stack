@@ -7,11 +7,19 @@ Build your own REST endpoint right out of the box without worrying about how it'
 * `jetty` webserver that hosts `swagger-ui`
 
 ##Usage
+There are two primary ways of using `stack`: local and remote.
+
+###Local
 There are only two classes (and one main class) that need to be implemented to see everything in action:
 
 Define the `resource`. The class must be `abstract`. This is where the `jax-rs` and `swagger` specifications are.
 ```java
-package example.resource;
+package example.resource.v1;
+
+import example.data.MyItem;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -24,18 +32,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import example.container.MyItem;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-
-@Api(value = "my-resource")
-@Path("/api/my-resource")
-public abstract class MyResource {
+@Api(value = "/v1/my-resource", description = "simple resources with path parameters")
+@Path("/api/v1/my-resource")
+public abstract class LocalResource {
 
     @ApiOperation(
             value = "create",
-            notes = "Creates and returns the id of a JSON representation of MyItem.")
+            notes = "Creates and returns the id of the created MyItem.")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
@@ -64,7 +67,7 @@ public abstract class MyResource {
             @ApiParam("_id description")
             @PathParam("_id")
             final String _id,
-            
+
             @ApiParam("item description")
             final MyItem item);
 
@@ -82,22 +85,21 @@ public abstract class MyResource {
 
 Define the `container`. This class must extend the `resource` class. This is where the `business logic` is.
 ```java
-package example.container;
+package example.container.v1;
 
-import java.util.Map;
-import java.util.UUID;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import example.data.MyItem;
+import example.main.Main;
+import example.resource.v1.LocalResource;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.util.Map;
+import java.util.UUID;
 
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-
-import example.Main;
-import example.resource.MyResource;
-
-public final class MyContainer extends MyResource {
+public class LocalContainer extends LocalResource {
 
     /**
      * This object is injected from the top-level injector in {@link Main}.
@@ -119,7 +121,7 @@ public final class MyContainer extends MyResource {
     /**
      * If the item to update does not exist, returns 204
      * Otherwise, returns the object
-     * 
+     * <p>
      * This shows we can return non-Response, non-String objects.
      */
     @Override
@@ -152,93 +154,158 @@ public final class MyContainer extends MyResource {
 }
 ```
 
-Default properties.
-```INI
-#default name
-name=stack
-
-# default version
-version=0.0.1
-
-# default port
-port=5555
-
-# required prefix (must be different)
-# api.prefix must be the beginning of all api paths
-# example: if api.prefix=api, then all @Path must begin with "/api/"
-api.prefix=api
-docs.prefix=docs
-
-# swagger configuration
-swagger.title=stack-swagger-ui
-swagger.description=swagger-ui endpoints
-
-# dist folder from swagger-ui
-swagger.dist.folder=swagger-ui
-```
-
 Start the `application`.
 ```java
-package example;
+package example.main;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.TypeLiteral;
-import com.google.inject.name.Names;
-
-import example.container.MyItem;
-import web.Stack;
+import example.helper.StackServerHelper;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        final Injector injector = Guice.createInjector(new AbstractModule() {
-
-            @Override
-            protected void configure() {
-                final Map<String, MyItem> items = new HashMap<>();
-                bind(new TypeLiteral<Map<String, MyItem>>() {})
-                    .annotatedWith(Names.named("items"))
-                    .toInstance(items);
-            }
-        });
-
-        new Stack(injector).start();
+        new StackServerHelper(5556, "example.container,example.resource").start();
     }
 }
 ```
 
-Let's see it in action:
-```
-user@vm:~$ curl -X POST "http://localhost:5555/api/my-resource/" -d "{\"data\":\"data\"}" --header 'Content-Type: application/json'
-1f1dd3af-2a6c-4b54-bcf6-f125d3fada65
-```
-```
-user@vm:~$ curl -X GET "http://localhost:5555/api/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65"
-{"_id":"1f1dd3af-2a6c-4b54-bcf6-f125d3fada65","data":"data"}
-```
-```
-curl -X PUT "http://localhost:5555/api/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65" -d "{\"data\": \"data2\"}" --header 'Content-Type: application/json'
-{"_id":"1f1dd3af-2a6c-4b54-bcf6-f125d3fada65","data":"data2"}
-```
-```
-curl -X DELETE "http://localhost:5555/api/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65"
-curl -X GET "http://localhost:5555/api/my-resource/1f1dd3af-2a6c-4b54-bcf6-f125d3fada65" -I
-HTTP/1.1 204 No Content
-Content-Type: application/json
-Date: Tue, 29 Sep 2015 05:43:26 GMT
-```
+###Remote
+Definfe the `resource`. Note it has an `@Remote` annotation. The example comes directly from
+https://github.com/swagger-api/swagger-samples/blob/master/java/java-jersey-jaxrs/src/main/java/io/swagger/sample/resource/UserResource.java
+```java
+package example.resource.petstore;
 
-##How
-When `Stack` is created, it scans every abstract class that is annotated with `@Path`.If found, it will attempt to find 
-an implementing class. If none or more than one is found, an `IllegalStateException` is thrown. 
-Once a `resource` and a `container` class are found, they are wired together automatically and hosted via `jetty`.
+import example.data.User;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.ResponseHeader;
+import stack.annotations.Remote;
+
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * This class has no corresponding implementation locally. The implementation is defined
+ * by the @Remote annotation and is hosted elsewhere. This resource serves as a proxy to
+ * the remote implementation and provides a swagger-ui for it locally.
+ *
+ * Source:
+ * https://github.com/swagger-api/swagger-samples/blob/master/java/java-jersey-jaxrs/src/main/java/io/swagger/sample/resource/UserResource.java
+ */
+@Remote(endpoint = "http://petstore.swagger.io/v2/user")
+@Path("/api/user")
+@Api(value = "/user", description = "Operations about user")
+@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+public abstract class RemoteResource {
+
+    @POST
+    @ApiOperation(value = "Create user",
+            notes = "This can only be done by the logged in user.",
+            position = 1)
+    public abstract Response createUser(
+            @ApiParam(value = "Created user object", required = true)
+            final User user);
+
+    @POST
+    @Path("/createWithArray")
+    @ApiOperation(value = "Creates list of users with given input array",
+            position = 2)
+    public abstract Response createUsersWithArrayInput(
+            @ApiParam(value = "List of user object", required = true)
+            final User[] users);
+
+    @POST
+    @Path("/createWithList")
+    @ApiOperation(value = "Creates list of users with given input array",
+            position = 3)
+    public abstract Response createUsersWithListInput(
+            @ApiParam(value = "List of user object", required = true)
+            final List<User> users);
+
+    @PUT
+    @Path("/{username}")
+    @ApiOperation(value = "Updated user",
+            notes = "This can only be done by the logged in user.",
+            position = 4)
+    @ApiResponses(value = {
+            @ApiResponse(code = 400, message = "Invalid user supplied"),
+            @ApiResponse(code = 404, message = "User not found")})
+    public abstract Response updateUser(
+            @ApiParam(value = "name that need to be updated", required = true)
+            @PathParam("username")
+            final String username,
+
+            @ApiParam(value = "Updated user object", required = true)
+            final User user);
+
+    @DELETE
+    @Path("/{username}")
+    @ApiOperation(value = "Delete user",
+            notes = "This can only be done by the logged in user.",
+            position = 5)
+    @ApiResponses(value = {
+            @ApiResponse(code = 400, message = "Invalid username supplied"),
+            @ApiResponse(code = 404, message = "User not found")})
+    public abstract Response deleteUser(
+            @ApiParam(value = "The name that needs to be deleted", required = true)
+            @PathParam("username")
+            final String username);
+
+    @GET
+    @Path("/{username}")
+    @ApiOperation(value = "Get user by user name",
+            response = User.class,
+            position = 0)
+    @ApiResponses(value = {
+            @ApiResponse(code = 400, message = "Invalid username supplied"),
+            @ApiResponse(code = 404, message = "User not found")})
+    public abstract Response getUserByName(
+            @ApiParam(value = "The name that needs to be fetched. Use user1 for testing. ", required = true)
+            @PathParam("username")
+            final String username);
+
+    @GET
+    @Path("/login")
+    @ApiOperation(value = "Logs user into the system",
+            response = String.class,
+            position = 6,
+            responseHeaders = {
+                    @ResponseHeader(name = "X-Expires-After", description = "date in UTC when token expires", response = Date.class),
+                    @ResponseHeader(name = "X-Rate-Limit", description = "calls per hour allowed by the user", response = Integer.class)
+            })
+    @ApiResponses(value = {@ApiResponse(code = 400, message = "Invalid username/password supplied")})
+    @Produces(MediaType.APPLICATION_XML) // TODO: work around; how to resolve?
+    public abstract Response loginUser(
+            @ApiParam(value = "The user name for login", required = true)
+            @QueryParam("username")
+            final String username,
+
+            @ApiParam(value = "The password for login in clear text", required = true)
+            @QueryParam("password")
+            final String password);
+
+    @GET
+    @Path("/logout")
+    @ApiOperation(value = "Logs out current logged in user session",
+            position = 7)
+    public abstract Response logoutUser();
+}```
+
 
 ##Restrictions
+* Requires jdk8.
 * The `resource` package must be separate from the `container` package.
 * The `container` must have a constructor with zero arguments. This means to use `@Inject`, fields must be at least package private.
 * The `api.prefix` in the properties must match all `@Path` prefix. Example: if `api.prefix=api`, then all `@Path` must begin with `/api/`.
@@ -246,9 +313,9 @@ Once a `resource` and a `container` class are found, they are wired together aut
 ##Example
 `git clone https://github.com/mikexliu/stack.git`
 
-`mvn install; mvn exec:java`
+`mvn clean install exec:java`
 
-`http://localhost:5555/docs` should now be accessible with all resources defined.
+`http://localhost:5556/docs` should now be accessible with all resources defined.
 
 ##Future
 * simple persistence (local file store, blob store, efficiency is not concerned)
@@ -257,7 +324,7 @@ Once a `resource` and a `container` class are found, they are wired together aut
 * remove guice requirement (might be difficult..)
 
 ##Technical Goals
-* proxy client class
+* proxy client class (in-progress)
   * auto generated
     * asynchronous clients
   * configurable timeouts
