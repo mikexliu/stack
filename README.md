@@ -301,7 +301,8 @@ public abstract class RemoteResource {
     @ApiOperation(value = "Logs out current logged in user session",
             position = 7)
     public abstract Response logoutUser();
-}```
+}
+```
 
 
 ##Restrictions
