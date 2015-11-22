@@ -15,7 +15,9 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Date;
 import java.util.List;
@@ -27,6 +29,7 @@ import java.util.List;
 @Remote(endpoint = "http://petstore.swagger.io/v2/user")
 @Path("/api/user")
 @Api(value = "/user", description = "Operations about user")
+//@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public abstract class UserResource {
 
     @POST
@@ -105,7 +108,8 @@ public abstract class UserResource {
                     @ResponseHeader(name = "X-Rate-Limit", description = "calls per hour allowed by the user", response = Integer.class)
             })
     @ApiResponses(value = {@ApiResponse(code = 400, message = "Invalid username/password supplied")})
-    public abstract String loginUser(
+    @Produces(MediaType.APPLICATION_XML) // TODO: work around; how to resolve?
+    public abstract Response loginUser(
             @ApiParam(value = "The user name for login", required = true)
             @QueryParam("username")
             final String username,

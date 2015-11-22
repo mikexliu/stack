@@ -22,7 +22,6 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -122,18 +121,29 @@ public class StackClient {
             }
 
             // build the request
-            final MediaType consumesType = getConsumesType(thisMethod);
-            final MediaType producesType = getProducesType(thisMethod);
+            final MediaType[] consumesType = getConsumesType(thisMethod);
+            final MediaType[] producesType = getProducesType(thisMethod);
             final WebTarget client = ClientBuilder.newClient().target(uri);
             final Builder builder = client.request(producesType).accept(consumesType);
 
+            final MediaType firstConsumesType;
+            if (consumesType.length == 0) {
+                log.debug("No valid @Consumes value found; defaulting to " + MediaType.APPLICATION_JSON_TYPE);
+                firstConsumesType = MediaType.APPLICATION_JSON_TYPE;
+            } else {
+                if (consumesType.length > 1) {
+                    log.debug("Found @Consumes " + Arrays.asList(consumesType) + " values; default to " + consumesType[0]);
+                }
+                firstConsumesType = consumesType[0];
+            }
+
             // make the request
             if (isPost) {
-                return builder.post(Entity.entity(entityObject, consumesType), thisMethod.getReturnType());
+                return builder.post(Entity.entity(entityObject, firstConsumesType), thisMethod.getReturnType());
             } else if (isGet) {
                 return builder.get(thisMethod.getReturnType());
             } else if (isPut) {
-                return builder.put(Entity.entity(entityObject, consumesType), thisMethod.getReturnType());
+                return builder.put(Entity.entity(entityObject, firstConsumesType), thisMethod.getReturnType());
             } else if (isDelete) {
                 return builder.delete(thisMethod.getReturnType());
             }
@@ -211,43 +221,71 @@ public class StackClient {
         return formattedPath;
     }
 
-    private MediaType getConsumesType(Method thisMethod) {
+    private MediaType[] getConsumesType(final Method thisMethod) {
         final Consumes consumesAnnotation = thisMethod.getAnnotation(Consumes.class);
-        final MediaType consumesType;
         if (consumesAnnotation != null) {
-            final String[] consumesTypes = consumesAnnotation.value();
-            if (consumesTypes.length == 0) {
-                log.warn("No MediaType specified in @Consumes. Defaulting to: " + MediaType.APPLICATION_JSON);
-                consumesType = MediaType.APPLICATION_JSON_TYPE;
-            } else {
-                if (consumesTypes.length > 1) {
-                    log.warn("Only one @Consume MediaType is supported. Using first: " + consumesTypes[0]);
-                }
-                consumesType = MediaType.valueOf(consumesTypes[0]);
+            final MediaType[] consumesType = getMediaTypes(consumesAnnotation);
+            if (consumesType.length != 0) {
+                return consumesType;
             }
+        }
+
+        final Class<?> parentClass = thisMethod.getDeclaringClass();
+        log.debug("Failed to find @Consumes on " + thisMethod + "; searching @Consumes in " + thisMethod.getDeclaringClass());
+        final Consumes parentConsumesAnnotation = parentClass.getAnnotation(Consumes.class);
+        if (parentConsumesAnnotation != null) {
+            final MediaType[] consumesType = getMediaTypes(parentConsumesAnnotation);
+            if (consumesType.length != 0) {
+                return consumesType;
+            }
+        }
+
+        log.debug("No MediaType found @Consumes in " + thisMethod.getName() + " nor " + parentClass + "; ignoring annotation");
+        return new MediaType[0];
+    }
+
+    private MediaType[] getMediaTypes(final Consumes consumesAnnotation) {
+        final String[] consumesTypes = consumesAnnotation.value();
+        final MediaType[] consumesType;
+        if (consumesTypes.length == 0) {
+            consumesType = new MediaType[0];
         } else {
-            consumesType = MediaType.APPLICATION_JSON_TYPE;
+            consumesType = Arrays.asList(consumesTypes).stream().map(MediaType::valueOf).collect(Collectors.toList()).toArray(new MediaType[0]);
         }
         return consumesType;
     }
 
-    private MediaType getProducesType(Method thisMethod) {
+    private MediaType[] getProducesType(final Method thisMethod) {
         final Produces producesAnnotation = thisMethod.getAnnotation(Produces.class);
-        final MediaType producesType;
         if (producesAnnotation != null) {
-            final String[] producesTypes = producesAnnotation.value();
-            if (producesTypes.length == 0) {
-                log.warn("No MediaType specified in @Produces. Defaulting to: " + MediaType.APPLICATION_JSON);
-                producesType = MediaType.APPLICATION_JSON_TYPE;
-            } else {
-                if (producesTypes.length > 1) {
-                    log.warn("Only one @Produces MediaType is supported. Using first: " + producesTypes[0]);
-                }
-                producesType = MediaType.valueOf(producesTypes[0]);
+            final MediaType[] consumesType = getMediaTypes(producesAnnotation);
+            if (consumesType.length != 0) {
+                return consumesType;
             }
-        } else {
-            producesType = MediaType.APPLICATION_JSON_TYPE;
         }
-        return producesType;
+
+        final Class<?> parentClass = thisMethod.getDeclaringClass();
+        log.debug("Failed to find @Produces on " + thisMethod + "; searching @Produces in " + thisMethod.getDeclaringClass());
+        final Produces parentProducesAnnotation = parentClass.getAnnotation(Produces.class);
+        if (parentProducesAnnotation != null) {
+            final MediaType[] consumesType = getMediaTypes(parentProducesAnnotation);
+            if (consumesType.length != 0) {
+                return consumesType;
+            }
+        }
+
+        log.debug("No MediaType found for @Produces in " + thisMethod.getName() + " nor " + parentClass + "; ignoring annotation");
+        return new MediaType[0];
+    }
+
+    private MediaType[] getMediaTypes(final Produces producesAnnotation) {
+        final String[] consumesTypes = producesAnnotation.value();
+        final MediaType[] consumesType;
+        if (consumesTypes.length == 0) {
+            consumesType = new MediaType[0];
+        } else {
+            consumesType = Arrays.asList(consumesTypes).stream().map(MediaType::valueOf).collect(Collectors.toList()).toArray(new MediaType[0]);
+        }
+        return consumesType;
     }
 }
