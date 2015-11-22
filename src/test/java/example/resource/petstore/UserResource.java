@@ -29,7 +29,7 @@ import java.util.List;
 @Remote(endpoint = "http://petstore.swagger.io/v2/user")
 @Path("/api/user")
 @Api(value = "/user", description = "Operations about user")
-//@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public abstract class UserResource {
 
     @POST
