@@ -2,7 +2,7 @@ package example.container.v3;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import example.MyItem;
+import example.data.MyItem;
 import example.main.Main;
 import example.resource.v3.ThirdResource;
 

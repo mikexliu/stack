@@ -1,6 +1,6 @@
 package example.resource.v3;
 
-import example.MyItem;
+import example.data.MyItem;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;

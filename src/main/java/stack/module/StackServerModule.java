@@ -90,7 +90,7 @@ public class StackServerModule extends AbstractModule {
                             log.warn("Did not find an endpoint for " + resource + "; ignoring");
                         } else {
                             bindResourceToRemoteContainer(resource, endpoint);
-                            log.info("Binding " + resource + " to " + endpoint);
+                            log.info("Binding " + resource + " to remote host " + endpoint);
                         }
                     }
                 }

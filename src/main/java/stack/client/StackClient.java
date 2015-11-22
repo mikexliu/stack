@@ -22,6 +22,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -216,8 +217,8 @@ public class StackClient {
         if (consumesAnnotation != null) {
             final String[] consumesTypes = consumesAnnotation.value();
             if (consumesTypes.length == 0) {
-                log.warn("No MediaType specified in @Consumes. Defaulting to: " + MediaType.WILDCARD_TYPE);
-                consumesType = MediaType.WILDCARD_TYPE;
+                log.warn("No MediaType specified in @Consumes. Defaulting to: " + MediaType.APPLICATION_JSON);
+                consumesType = MediaType.APPLICATION_JSON_TYPE;
             } else {
                 if (consumesTypes.length > 1) {
                     log.warn("Only one @Consume MediaType is supported. Using first: " + consumesTypes[0]);
@@ -225,7 +226,7 @@ public class StackClient {
                 consumesType = MediaType.valueOf(consumesTypes[0]);
             }
         } else {
-            consumesType = MediaType.WILDCARD_TYPE;
+            consumesType = MediaType.APPLICATION_JSON_TYPE;
         }
         return consumesType;
     }
@@ -236,8 +237,8 @@ public class StackClient {
         if (producesAnnotation != null) {
             final String[] producesTypes = producesAnnotation.value();
             if (producesTypes.length == 0) {
-                log.warn("No MediaType specified in @Produces. Defaulting to: " + MediaType.WILDCARD_TYPE);
-                producesType = MediaType.WILDCARD_TYPE;
+                log.warn("No MediaType specified in @Produces. Defaulting to: " + MediaType.APPLICATION_JSON);
+                producesType = MediaType.APPLICATION_JSON_TYPE;
             } else {
                 if (producesTypes.length > 1) {
                     log.warn("Only one @Produces MediaType is supported. Using first: " + producesTypes[0]);
@@ -245,7 +246,7 @@ public class StackClient {
                 producesType = MediaType.valueOf(producesTypes[0]);
             }
         } else {
-            producesType = MediaType.WILDCARD_TYPE;
+            producesType = MediaType.APPLICATION_JSON_TYPE;
         }
         return producesType;
     }

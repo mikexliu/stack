@@ -1,6 +1,6 @@
 package stack.server;
 
-import example.MyItem;
+import example.data.MyItem;
 import example.helper.StackClientHelper;
 import example.helper.StackServerHelper;
 import example.resource.v1.FirstResource;

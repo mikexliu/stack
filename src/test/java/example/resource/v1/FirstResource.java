@@ -1,10 +1,9 @@
 package example.resource.v1;
 
-import example.MyItem;
+import example.data.MyItem;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import stack.annotations.Remote;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;

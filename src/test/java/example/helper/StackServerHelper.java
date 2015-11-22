@@ -5,7 +5,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
-import example.MyItem;
+import example.data.MyItem;
 import stack.server.Stack;
 
 import java.util.HashMap;

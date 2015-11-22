@@ -1,6 +1,6 @@
 package stack.client;
 
-import example.MyItem;
+import example.data.MyItem;
 import example.helper.StackClientHelper;
 import example.helper.StackServerHelper;
 import example.resource.v2.SecondResource;
