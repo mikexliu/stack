@@ -30,6 +30,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -181,7 +182,7 @@ public class StackClient {
 
         // figure out what each parameter is for
         final Map<String, String> pathParameters = new HashMap<>();
-        final Map<String, String> queryParameters = new HashMap<>();
+        final Map<String, Object> queryParameters = new HashMap<>();
 
         // TODO: need to support: non-String types (mapped to String). use om
         // https://jersey.java.net/apidocs/2.22/jersey/javax/ws/rs/PathParam.html
@@ -199,8 +200,14 @@ public class StackClient {
                 } else if (parameterAnnotation instanceof QueryParam) {
                     final QueryParam queryParam = QueryParam.class.cast(parameterAnnotation);
                     final String encodedKey = URLEncoder.encode(queryParam.value(), "UTF-8");
-                    final String encodedValue = URLEncoder.encode(argument.toString(), "UTF-8");
-                    queryParameters.put(encodedKey, encodedValue);
+
+                    if (argument instanceof Set | argument instanceof List) {
+                        queryParameters.put(encodedKey, argument);
+                    } else {
+                        final String encodedValue = URLEncoder.encode(argument.toString(), "UTF-8");
+                        queryParameters.put(encodedKey, encodedValue);
+                    }
+
                     args[i] = Void.TYPE;
                 }
             }
@@ -215,8 +222,16 @@ public class StackClient {
         if (queryParameters.size() > 0) {
             formattedPath += "?";
         }
-        for (final Entry<String, String> queryParameterMapping : queryParameters.entrySet()) {
-            formattedPath += queryParameterMapping.getKey() + "=" + queryParameterMapping.getValue() + "&";
+        for (final Entry<String, Object> queryParameterMapping : queryParameters.entrySet()) {
+            final Object value = queryParameterMapping.getValue();
+            if (value instanceof List || value instanceof Set) {
+                final Collection<?> list = (Collection) value;
+                for (final Object param : list) {
+                    formattedPath += queryParameterMapping.getKey() + "=" + param + "&";
+                }
+            } else {
+                formattedPath += queryParameterMapping.getKey() + "=" + value + "&";
+            }
         }
         return formattedPath;
     }
