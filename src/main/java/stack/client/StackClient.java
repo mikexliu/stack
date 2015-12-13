@@ -21,6 +21,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -106,6 +107,8 @@ public class StackClient {
             final String formattedPath = getFormattedPath(unformattedPath, thisMethod, args);
             final URI uri = new URI(formattedPath).normalize();
 
+            log.debug("Calling: " + uri);
+
             // TODO: once we introduce more parameter types, we can't mark out
             // args here we need to think of a way to do this better, most
             // likely an inner class is needed determine the entity, if any.
@@ -139,15 +142,17 @@ public class StackClient {
                 firstConsumesType = consumesType[0];
             }
 
+            final GenericType<?> genericType = new GenericType<>(thisMethod.getGenericReturnType());
+
             // make the request
             if (isPost) {
-                return builder.post(Entity.entity(entityObject, firstConsumesType), thisMethod.getReturnType());
+                return builder.post(Entity.entity(entityObject, firstConsumesType), genericType);
             } else if (isGet) {
-                return builder.get(thisMethod.getReturnType());
+                return builder.get(genericType);
             } else if (isPut) {
-                return builder.put(Entity.entity(entityObject, firstConsumesType), thisMethod.getReturnType());
+                return builder.put(Entity.entity(entityObject, firstConsumesType), genericType);
             } else if (isDelete) {
-                return builder.delete(thisMethod.getReturnType());
+                return builder.delete(genericType);
             }
 
             throw new IllegalStateException("Could not make a valid request from method " + thisMethod);
