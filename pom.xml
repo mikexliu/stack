@@ -8,7 +8,7 @@
     <distributionManagement>
         <repository>
             <id>squaretrade-nexus</id>
-            <url>http://nexus.squaretrade.com/content/repositories/snapshots</url>
+            <url>http://nexus.squaretrade.com/content/repositories/internal-snapshots</url>
         </repository>
     </distributionManagement>
 
@@ -19,17 +19,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.3</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>squaretrade-nexus-server</serverId>
-                    <nexusUrl>http://nexus.squaretrade.com</nexusUrl>
-                </configuration>
-            </plugin>
-            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -74,9 +63,9 @@
         </dependency>
 
         <dependency>
-            <groupId>javassist</groupId>
+            <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
-            <version>3.12.1.GA</version>
+            <version>3.20.0-GA</version>
         </dependency>
 
         <dependency>
