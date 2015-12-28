@@ -116,7 +116,7 @@ public class Stack {
 
         final String[] packages;
         if (!Stack.properties.containsKey("packages")) {
-            throw new IllegalStateException("Key 'packages' does not exist in Properties; contains: " + properties);
+            throw new IllegalStateException("Key 'packages' does not exist in Properties; contains: " + Stack.properties);
         } else {
             packages = Stack.properties.get("packages").toString().split(",");
             Preconditions.checkState(packages.length != 0, "Key 'packages' must contain comma separated values");

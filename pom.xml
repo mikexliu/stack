@@ -5,6 +5,13 @@
     <artifactId>resources</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
+    <distributionManagement>
+        <repository>
+            <id>squaretrade-nexus</id>
+            <url>http://nexus.squaretrade.com/content/repositories/internal-snapshots</url>
+        </repository>
+    </distributionManagement>
+
     <properties>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>

@@ -19,7 +19,7 @@ public class StackClientTest {
 
     private static final String protocol = "http";
     private static final String endpoint = "localhost";
-    private static final int port = 5556;
+    private static final int port = 5550;
 
     private static StackClientHelper stackClientHelper;
     private static StackServerHelper stackServerHelper;
