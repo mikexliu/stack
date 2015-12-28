@@ -71,6 +71,7 @@ public class Stack {
         properties = new Properties();
         try {
             properties.load(Stack.class.getResourceAsStream("/stack.properties"));
+            properties.putAll(System.getProperties());
 
             Resource.setDefaultUseCaches(false);
         } catch (IOException e) {
