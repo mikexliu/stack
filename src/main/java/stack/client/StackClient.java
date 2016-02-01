@@ -145,17 +145,20 @@ public class StackClient {
             final GenericType<?> genericType = new GenericType<>(thisMethod.getGenericReturnType());
 
             // make the request
-            if (isPost) {
-                return builder.post(Entity.entity(entityObject, firstConsumesType), genericType);
-            } else if (isGet) {
-                return builder.get(genericType);
-            } else if (isPut) {
-                return builder.put(Entity.entity(entityObject, firstConsumesType), genericType);
-            } else if (isDelete) {
-                return builder.delete(genericType);
+            try {
+                if (isPost) {
+                    return builder.post(Entity.entity(entityObject, firstConsumesType), genericType);
+                } else if (isGet) {
+                    return builder.get(genericType);
+                } else if (isPut) {
+                    return builder.put(Entity.entity(entityObject, firstConsumesType), genericType);
+                } else if (isDelete) {
+                    return builder.delete(genericType);
+                }
+                throw new IllegalStateException("Could not make a valid request from method " + thisMethod);
+            } catch (Exception e) {
+                throw new IllegalStateException("Could not make a valid request from method " + thisMethod, e);
             }
-
-            throw new IllegalStateException("Could not make a valid request from method " + thisMethod);
         };
 
         try {
