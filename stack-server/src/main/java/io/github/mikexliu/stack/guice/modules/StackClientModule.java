@@ -2,7 +2,7 @@ package io.github.mikexliu.stack.guice.modules;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
-import stack.client.StackClient;
+import io.github.mikexliu.stack.client.StackClient;
 
 import java.net.URL;
 import java.util.Map;
