@@ -1,4 +1,4 @@
-package stack.module;
+package io.github.mikexliu.stack.guice.modules;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;

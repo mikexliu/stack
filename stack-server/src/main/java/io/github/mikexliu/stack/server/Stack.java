@@ -1,4 +1,4 @@
-package stack.server;
+package io.github.mikexliu.stack.server;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
@@ -29,7 +29,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import stack.module.StackServerModule;
+import io.github.mikexliu.stack.guice.modules.StackServerModule;
 
 import javax.servlet.DispatcherType;
 import javax.ws.rs.Path;

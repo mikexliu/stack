@@ -1,4 +1,4 @@
-package stack.module;
+package io.github.mikexliu.stack.guice.modules;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -6,12 +6,12 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.reflect.ClassPath;
 import com.google.inject.AbstractModule;
+import io.github.mikexliu.stack.client.StackClient;
+import io.github.mikexliu.stack.guice.aop.Remote;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import stack.annotations.Remote;
-import stack.client.StackClient;
 
 import javax.ws.rs.Path;
 import java.io.IOException;

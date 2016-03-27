@@ -1,4 +1,4 @@
-package stack.annotations;
+package io.github.mikexliu.stack.guice.aop;
 
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;

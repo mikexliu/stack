@@ -1,4 +1,4 @@
-package stack.client;
+package io.github.mikexliu.stack.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
