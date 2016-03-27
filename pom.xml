@@ -4,16 +4,16 @@
                              http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.mikelxiu</groupId>
+    <groupId>io.github.mikexliu</groupId>
     <artifactId>stack</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.0.1-SNAPSHOT</version>
     <name>stack</name>
 
     <modules>
-        <module>example-server</module>
-        <module>example-client</module>
-        <module>stack</module>
+        <module>server-example</module>
+        <module>client-example</module>
+        <module>stack-lib</module>
     </modules>
 
     <properties>
