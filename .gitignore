@@ -28,11 +28,6 @@ target/*
 **/bin/
 **/var/
 
-# node
-*/node_modules/*
-*/app/bower_components/*
-npm-debug.log
-
 # general
 **/no-hup.out
 **/deploy.log

@@ -13,7 +13,8 @@
     <modules>
         <module>server-example</module>
         <module>client-example</module>
-        <module>stack-lib</module>
+        <module>stack-client</module>
+        <module>stack-server</module>
     </modules>
 
     <properties>
