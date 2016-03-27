@@ -1,17 +1,38 @@
+# linux
+*.swp
+
 # eclipse
 .classpath
 .project
 .settings/
-target/
+.metadata/
 
 # idea
 .idea/
-resources.iml
+*.iml
 
-# linux
-*~
+# osx
+.DS_Store
 
-.metadata
+# gradle
+.gradle/
+build/
+!gradle-wrapper.jar
+
+# maven
+*/target/*
+target/*
+**/dependency-reduced-pom.xml
 
 # project
-var/
+**/bin/
+**/var/
+
+# node
+*/node_modules/*
+*/app/bower_components/*
+npm-debug.log
+
+# general
+**/no-hup.out
+**/deploy.log
