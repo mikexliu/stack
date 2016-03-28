@@ -50,6 +50,10 @@ public class SwaggerServletModule extends ServletModule {
                 chain.doFilter(request, response);
             }
 
+            /**
+             * TODO: make this optional
+             * @param response
+             */
             private void addCorsHeader(HttpServletResponse response) {
                 response.addHeader("Access-Control-Allow-Origin", "*");
                 response.addHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, HEAD");

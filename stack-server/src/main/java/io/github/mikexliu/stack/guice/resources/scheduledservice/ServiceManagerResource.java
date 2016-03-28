@@ -2,14 +2,17 @@ package io.github.mikexliu.stack.guice.resources.scheduledservice;
 
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Inject;
-import io.github.mikexliu.stack.server.StackServer;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import java.util.Map;
 
@@ -17,7 +20,7 @@ import java.util.Map;
  * Created by mliu on 3/27/16.
  */
 @Api(value = "Scheduled Services manager api", description = "Complete control Scheduled Services")
-@Path(StackServer.API_PATH + "/stack/scheduled-services/v1")
+@Path("/api/stack/scheduled-services/v1")
 public final class ServiceManagerResource {
 
     private static final Logger log = LoggerFactory.getLogger(ServiceManagerResource.class);

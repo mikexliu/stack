@@ -12,6 +12,7 @@ import com.google.inject.servlet.GuiceServletContextListener;
 import io.github.mikexliu.stack.guice.modules.AnnotationModules;
 import io.github.mikexliu.stack.guice.modules.ResourceToContainerModule;
 import io.github.mikexliu.stack.guice.modules.SwaggerServletModule;
+import io.github.mikexliu.stack.guice.resources.scheduledservice.ServicesManager;
 import io.github.mikexliu.stack.guice.resources.scheduledservice.ServicesManagerModule;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
@@ -32,7 +33,12 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.DispatcherType;
 import javax.ws.rs.Path;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -54,7 +60,6 @@ public class StackServer {
 
     private static final String SWAGGER_CONTEXT_PATH = "/docs/";
     private static final String SWAGGER_FILTER = "api";
-    public static final String API_PATH = "/" + SWAGGER_FILTER;
 
     public static final class Builder {
         private final List<String> packageNames;
@@ -143,7 +148,8 @@ public class StackServer {
         // meta modules
         final Collection<Module> metaModules = new LinkedList<>();
         metaModules.add(new ServicesManagerModule(stackInjector));
-        this.injector = stackInjector.createChildInjector(new ResourceToContainerModule(builder.packageNames));
+        metaModules.add(new ResourceToContainerModule(builder.packageNames));
+        this.injector = stackInjector.createChildInjector(metaModules);
 
         this.server = new Server(builder.port);
     }
@@ -161,12 +167,14 @@ public class StackServer {
         final HandlerList handlers = new HandlerList();
         handlers.addHandler(buildSwaggerContext());
         handlers.addHandler(buildContext());
-
         server.setHandler(handlers);
+
+        Optional.of(this.injector.getInstance(ServicesManager.class)).ifPresent(s -> s.startAll());
         server.start();
     }
 
     public void stop() throws Exception {
+        Optional.of(this.injector.getInstance(ServicesManager.class)).ifPresent(s -> s.stopAll());
         server.stop();
     }
 
