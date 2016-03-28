@@ -54,7 +54,19 @@
     <dependencies>
         <dependency>
             <groupId>io.github.mikexliu</groupId>
+            <artifactId>client-example</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.mikexliu</groupId>
             <artifactId>stack-server</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.mikexliu</groupId>
+            <artifactId>stack-client</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 

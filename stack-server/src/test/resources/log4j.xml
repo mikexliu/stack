@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
-<log4j:configuration xmlns:log4j='http://jakarta.apache.org/log4j/'
-                     debug="true">
+<log4j:configuration xmlns:log4j='http://jakarta.apache.org/log4j/'>
 
     <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
-        <param name="file" value="var/log/stdout.log"/>
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d [%t] %-5p %c - %m%n"/>
+            <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
         </layout>
     </appender>
 
@@ -15,12 +13,17 @@
         <param name="maxBackupIndex" value="10"/>
         <param name="file" value="var/log/server.log"/>
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d %5p [%t] %F:%L - %m%n"/>
+            <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
         </layout>
     </appender>
+
+    <category name="org.reflections">
+        <priority value="off"/>
+    </category>
 
     <root>
         <level value="INFO"/>
         <appender-ref ref="LogAppender"/>
+        <appender-ref ref="stdout"/>
     </root>
 </log4j:configuration>

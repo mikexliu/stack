@@ -124,9 +124,8 @@ public class StackServer {
         }
 
         public StackServer build() {
-            Preconditions.checkArgument(packageNames.isEmpty(), "No package name specified; cannot find classes.");
-            Preconditions.checkArgument(modules.isEmpty(), "No modules specified; nothing to build.");
-            return null;
+            Preconditions.checkArgument(!packageNames.isEmpty(), "No package name specified; cannot find classes.");
+            return new StackServer(this);
         }
     }
 
