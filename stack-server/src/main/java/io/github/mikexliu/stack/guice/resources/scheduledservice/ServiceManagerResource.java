@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.modules.scheduledservice;
+package io.github.mikexliu.stack.guice.resources.scheduledservice;
 
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Inject;

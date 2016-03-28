@@ -12,7 +12,7 @@ import com.google.inject.servlet.GuiceServletContextListener;
 import io.github.mikexliu.stack.guice.modules.AnnotationModules;
 import io.github.mikexliu.stack.guice.modules.ResourceToContainerModule;
 import io.github.mikexliu.stack.guice.modules.SwaggerServletModule;
-import io.github.mikexliu.stack.guice.modules.scheduledservice.ServicesManagerModule;
+import io.github.mikexliu.stack.guice.resources.scheduledservice.ServicesManagerModule;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
 import org.eclipse.jetty.server.Server;
