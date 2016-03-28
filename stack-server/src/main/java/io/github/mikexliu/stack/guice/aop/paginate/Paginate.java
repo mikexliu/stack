@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.aop;
+package io.github.mikexliu.stack.guice.aop.paginate;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

@@ -1,13 +1,10 @@
 package io.github.mikexliu.stack.guice.modules;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.reflect.ClassPath;
 import com.google.inject.AbstractModule;
-import io.github.mikexliu.stack.client.StackClient;
-import io.github.mikexliu.stack.guice.aop.Remote;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 import org.slf4j.Logger;
@@ -19,26 +16,22 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  *
  */
-public class StackServerModule extends AbstractModule {
+public class ResourceToContainerModule extends AbstractModule {
 
-    private static final Logger log = LoggerFactory.getLogger(StackServerModule.class);
+    private static final Logger log = LoggerFactory.getLogger(ResourceToContainerModule.class);
 
     private final Map<Method, Method> resourceToContainer;
 
-    private final String[] packages;
+    private final Collection<String> packageNames;
 
-    public StackServerModule(final String... packages) {
-        this.packages = packages;
+    public ResourceToContainerModule(final Collection<String> packageNames) {
+        this.packageNames = packageNames;
         this.resourceToContainer = Maps.newHashMap();
     }
 
@@ -46,7 +39,7 @@ public class StackServerModule extends AbstractModule {
         final Set<Class<?>> classes = new HashSet<>();
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();
         try {
-            for (final String packageName : packages) {
+            for (final String packageName : packageNames) {
                 for (final ClassPath.ClassInfo info : ClassPath.from(loader).getTopLevelClassesRecursive(packageName)) {
                     try {
                         final Class<?> classObject = info.load();
@@ -65,33 +58,22 @@ public class StackServerModule extends AbstractModule {
 
             for (final Class<?> resource : classes) {
                 if (Modifier.isAbstract(resource.getModifiers())) {
-                    if (!resource.isAnnotationPresent(Remote.class)) {
-                        Class<?> container = null;
-                        for (final Class<?> clazz : classes) {
-                            if (resource.isAssignableFrom(clazz) && resource != clazz) {
-                                if (container == null) {
-                                    container = clazz;
-                                } else {
-                                    throw new IllegalStateException(
-                                            "Found multiple implementations of " + resource + " (can only accept one)");
-                                }
+                    Class<?> container = null;
+                    for (final Class<?> clazz : classes) {
+                        if (resource.isAssignableFrom(clazz) && resource != clazz) {
+                            if (container == null) {
+                                container = clazz;
+                            } else {
+                                throw new IllegalStateException(
+                                        "Found multiple implementations of " + resource + " (can only accept one)");
                             }
                         }
-                        if (container == null) {
-                            log.warn("Did not find an implementations of " + resource + "; ignoring");
-                        } else {
-                            bindResourceToLocalContainer(resource, container);
-                            log.info("Binding " + resource + " to " + container);
-                        }
+                    }
+                    if (container == null) {
+                        log.warn("Did not find an implementations of " + resource + "; ignoring");
                     } else {
-                        final Remote remoteAnnotation = resource.getAnnotation(Remote.class);
-                        final String endpoint = remoteAnnotation.endpoint();
-                        if (Strings.isNullOrEmpty(endpoint)) {
-                            log.warn("Did not find an endpoint for " + resource + "; ignoring");
-                        } else {
-                            bindResourceToRemoteContainer(resource, endpoint);
-                            log.info("Binding " + resource + " to remote host " + endpoint);
-                        }
+                        bindResourceToLocalContainer(resource, container);
+                        log.info("Binding " + resource + " to " + container);
                     }
                 }
             }
@@ -179,24 +161,6 @@ public class StackServerModule extends AbstractModule {
             return resourceInstance;
         } catch (NoSuchMethodException | IllegalArgumentException | InstantiationException | IllegalAccessException
                 | InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private final Object bindResourceToRemoteContainer(final Class resource, final String endpoint) {
-        try {
-            final Object client = new StackClient(new URL(endpoint)).getClient(resource, endpoint);
-            final ProxyFactory factory = new ProxyFactory();
-            factory.setSuperclass(resource);
-            factory.setFilter(method -> Modifier.isAbstract(method.getModifiers()));
-
-            final MethodHandler handler = (b, thisMethod, proceed, args) -> thisMethod.invoke(client, args);
-
-            final Object resourceInstance = resource.cast(factory.create(new Class<?>[0], new Object[0], handler));
-            bind(resource).toInstance(resource.cast(resourceInstance));
-            return resourceInstance;
-        } catch (NoSuchMethodException | IllegalArgumentException | InstantiationException | IllegalAccessException
-                | InvocationTargetException | MalformedURLException e) {
             throw new RuntimeException(e);
         }
     }
