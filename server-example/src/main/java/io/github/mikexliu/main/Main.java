@@ -1,4 +1,4 @@
-package io.github.mikexliu;
+package io.github.mikexliu.main;
 
 import io.github.mikexliu.guice.modules.ScheduledServiceModule;
 import io.github.mikexliu.stack.server.StackServer;
