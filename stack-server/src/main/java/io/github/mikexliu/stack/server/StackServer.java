@@ -9,7 +9,7 @@ import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.servlet.GuiceFilter;
 import com.google.inject.servlet.GuiceServletContextListener;
-import io.github.mikexliu.stack.guice.modules.AnnotationModules;
+import io.github.mikexliu.stack.guice.modules.aop.AnnotationModules;
 import io.github.mikexliu.stack.guice.modules.SwaggerServletModule;
 import io.github.mikexliu.stack.guice.modules.apis.ContainersModule;
 import io.github.mikexliu.stack.guice.modules.apis.ResourcesModule;

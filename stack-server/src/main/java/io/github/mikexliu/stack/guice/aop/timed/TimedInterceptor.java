@@ -10,23 +10,25 @@ import java.util.concurrent.TimeUnit;
 
 public class TimedInterceptor implements MethodInterceptor {
 
-    public Object invoke(MethodInvocation invocation) throws Throwable {
-        Class callingClass = this.getClass(invocation.getThis().getClass());
-        Logger log = LoggerFactory.getLogger(callingClass);
-        Stopwatch stopWatch = Stopwatch.createStarted();
+    @Override
+    public Object invoke(final MethodInvocation invocation) throws Throwable {
+        final Class<?> callingClass = getClass(invocation.getThis().getClass());
+        final String methodName = invocation.getMethod().getName();
+        final Logger log = LoggerFactory.getLogger(callingClass);
 
-        Object var5;
+        final Stopwatch stopWatch = Stopwatch.createStarted();
         try {
-            log.info(String.format("%s started", new Object[]{callingClass}));
-            var5 = invocation.proceed();
+            log.info(String.format("%s.%s started", callingClass, methodName));
+            return invocation.proceed();
         } finally {
-            log.info(String.format("%s finished; took %s seconds", new Object[]{callingClass, Long.valueOf(stopWatch.elapsed(TimeUnit.SECONDS))}));
+            log.info(String.format("%s.%s finished; took %s seconds", callingClass, methodName, stopWatch.elapsed(TimeUnit.SECONDS)));
         }
-
-        return var5;
     }
 
-    private Class<?> getClass(Class<?> callingClass) {
-        return callingClass.getSimpleName().contains("EnhancerByGuice")?callingClass.getSuperclass():callingClass;
+    private Class<?> getClass(final Class<?> callingClass) {
+        if (callingClass.getSimpleName().contains("EnhancerByGuice")) {
+            return callingClass.getSuperclass();
+        }
+        return callingClass;
     }
 }

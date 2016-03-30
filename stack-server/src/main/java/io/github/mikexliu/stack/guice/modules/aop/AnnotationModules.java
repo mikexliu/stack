@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.modules;
+package io.github.mikexliu.stack.guice.modules.aop;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.matcher.Matchers;
