@@ -10,8 +10,9 @@ import com.google.inject.Module;
 import com.google.inject.servlet.GuiceFilter;
 import com.google.inject.servlet.GuiceServletContextListener;
 import io.github.mikexliu.stack.guice.modules.AnnotationModules;
-import io.github.mikexliu.stack.guice.modules.ResourceToContainerModule;
 import io.github.mikexliu.stack.guice.modules.SwaggerServletModule;
+import io.github.mikexliu.stack.guice.modules.apis.ContainersModule;
+import io.github.mikexliu.stack.guice.modules.apis.ResourcesModule;
 import io.github.mikexliu.stack.guice.resources.scheduledservice.ServicesManager;
 import io.github.mikexliu.stack.guice.resources.scheduledservice.ServicesManagerModule;
 import io.swagger.jaxrs.config.BeanConfig;
@@ -142,12 +143,13 @@ public class StackServer {
         // stack modules
         final List<Module> modules = builder.modules;
         modules.add(new AnnotationModules());
+        modules.add(new ContainersModule(builder.packageNames));
         final Injector stackInjector = Guice.createInjector(builder.modules);
 
         // meta modules
         final Collection<Module> metaModules = new LinkedList<>();
         metaModules.add(new ServicesManagerModule(stackInjector));
-        metaModules.add(new ResourceToContainerModule(builder.packageNames));
+        metaModules.add(new ResourcesModule(builder.packageNames, stackInjector));
         this.injector = stackInjector.createChildInjector(metaModules);
 
         this.server = new Server(builder.port);

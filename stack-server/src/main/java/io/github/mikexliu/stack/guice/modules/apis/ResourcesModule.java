@@ -1,10 +1,10 @@
-package io.github.mikexliu.stack.guice.modules;
+package io.github.mikexliu.stack.guice.modules.apis;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.reflect.ClassPath;
 import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 import org.slf4j.Logger;
@@ -16,23 +16,25 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- *
- */
-public class ResourceToContainerModule extends AbstractModule {
+public class ResourcesModule extends AbstractModule {
 
-    private static final Logger log = LoggerFactory.getLogger(ResourceToContainerModule.class);
+    private static final Logger log = LoggerFactory.getLogger(ResourcesModule.class);
 
     private final Map<Method, Method> resourceToContainer;
-
     private final Collection<String> packageNames;
+    private final Injector injector;
 
-    public ResourceToContainerModule(final Collection<String> packageNames) {
+    public ResourcesModule(final Collection<String> packageNames, final Injector injector) {
+        this.resourceToContainer = new HashMap<>();
         this.packageNames = packageNames;
-        this.resourceToContainer = Maps.newHashMap();
+        this.injector = injector;
     }
 
     protected void configure() {
@@ -43,8 +45,8 @@ public class ResourceToContainerModule extends AbstractModule {
                 for (final ClassPath.ClassInfo info : ClassPath.from(loader).getTopLevelClassesRecursive(packageName)) {
                     try {
                         final Class<?> classObject = info.load();
-                        log.info("Loaded " + classObject);
                         if (classObject.isAnnotationPresent(Path.class)) {
+                            log.info("Loaded " + classObject);
                             classes.add(classObject);
                         } else if (!Object.class.equals(classObject) && !classObject.isInterface()
                                 && classObject.getSuperclass().isAnnotationPresent(Path.class)) {
@@ -109,18 +111,6 @@ public class ResourceToContainerModule extends AbstractModule {
         }
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private final Object bindContainer(final Class container) {
-        try {
-            final Object containerInstance = container.newInstance();
-            requestInjection(containerInstance);
-            bind(container).toInstance(container.cast(containerInstance));
-            return containerInstance;
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private final void bindResourceToLocalContainer(final Class<?> resource, final Class<?> container) {
         final Set<Method> nonAbstractMethods = Sets.newHashSet(resource.getMethods()).stream()
                 .filter(method -> !Modifier.isAbstract(method.getModifiers())).collect(Collectors.toSet());
@@ -136,7 +126,7 @@ public class ResourceToContainerModule extends AbstractModule {
             }
         }
 
-        bindResourceToContainer(resource, bindContainer(container));
+        bindResourceToContainer(resource, injector.getInstance(container));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

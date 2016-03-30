@@ -6,8 +6,12 @@ import service.UsersCache;
 
 public class UsersContainer extends UsersResource {
 
+    private final UsersCache usersCache;
+
     @Inject
-    UsersCache usersCache;
+    public UsersContainer(final UsersCache usersCache) {
+        this.usersCache = usersCache;
+    }
 
     @Override
     public String post(String user) {
