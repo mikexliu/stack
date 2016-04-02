@@ -8,6 +8,7 @@ import io.github.mikexliu.stack.server.StackServer;
 import javax.ws.rs.core.Response;
 
 public class Main {
+
     public static void main(String[] args) throws Exception {
         new StackServer.Builder()
                 .withTitle("server-example")
@@ -19,8 +20,10 @@ public class Main {
                 .withFrontModule(TimedModule.class)
                 .withFrontModule(ServerExampleModule.class)
                 .withCorsEnabled()
-                .withExceptionHandler(throwable -> Response.status(Response.Status.FORBIDDEN).build())
+                .withExceptionHandler(throwable ->
+                        Response.status(Response.Status.NOT_FOUND).entity("Not Found Message").build())
                 .withPort(5454)
+                .build()
                 .start();
     }
 }

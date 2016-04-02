@@ -114,7 +114,8 @@ public class StackClient {
             // likely an inner class is needed determine the entity, if any.
             // this just finds the last non-annotated argument and we will use
             // it as the entity to be consumed
-            final Set<Object> remainingParameters = Arrays.asList(args).stream().filter(arg -> arg != Void.TYPE)
+            final Set<Object> remainingParameters = Arrays.asList(args).stream()
+                    .filter(arg -> arg != Void.TYPE)
                     .collect(Collectors.toSet());
             Preconditions.checkState(remainingParameters.size() == 0 || remainingParameters.size() == 1,
                     "Too many non-annotated arguments: " + remainingParameters);
@@ -273,7 +274,9 @@ public class StackClient {
         if (consumesTypes.length == 0) {
             consumesType = new MediaType[0];
         } else {
-            consumesType = Arrays.asList(consumesTypes).stream().map(MediaType::valueOf).collect(Collectors.toList()).toArray(new MediaType[0]);
+            consumesType = Arrays.asList(consumesTypes).stream()
+                    .map(MediaType::valueOf)
+                    .collect(Collectors.toList()).toArray(new MediaType[0]);
         }
         return consumesType;
     }

@@ -113,11 +113,13 @@ public class ResourcesModule extends BackModule {
 
     private final void bindResourceToLocalContainer(final Class<?> resource, final Class<?> container) {
         final Set<Method> nonAbstractMethods = Sets.newHashSet(resource.getMethods()).stream()
-                .filter(method -> !Modifier.isAbstract(method.getModifiers())).collect(Collectors.toSet());
+                .filter(method -> !Modifier.isAbstract(method.getModifiers()))
+                .collect(Collectors.toSet());
         Preconditions.checkState(!nonAbstractMethods.isEmpty(), "Found non-abstract methods in " + resource + ": " + nonAbstractMethods);
 
         final Set<Method> abstractMethods = Sets.newHashSet(resource.getMethods()).stream()
-                .filter(method -> Modifier.isAbstract(method.getModifiers())).collect(Collectors.toSet());
+                .filter(method -> Modifier.isAbstract(method.getModifiers()))
+                .collect(Collectors.toSet());
 
         for (final Method resourceMethod : abstractMethods) {
             final Method containerMethod = findMatchingMethod(container, resourceMethod);

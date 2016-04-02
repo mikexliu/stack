@@ -48,11 +48,6 @@ import java.util.stream.Collectors;
  * better scanner)
  * https://github.com/swagger-api/swagger-core/wiki/Annotations-1.5.X#api
  * <p>
- * TODO: remove Server from here, add to injector (every object, including
- * Properties, should come from injector; if none, then default)
- * <p>
- * TODO: make the ResponseThrowableHandler easier to inject or create
- * <p>
  * TODO: publish this to central repository.
  * https://maven.apache.org/guides/mini/guide-central-repository-upload.html
  */
@@ -108,6 +103,8 @@ public class StackServer {
         }
 
         // Package name of @Api implementations
+        //
+        //
         public Builder withApiPackageName(final String packageName) {
             this.apiPackageNames.add(packageName);
             return this;
@@ -158,8 +155,12 @@ public class StackServer {
             return this;
         }
 
-        public void start() throws Exception {
+        public StackServer build() throws Exception {
             Preconditions.checkArgument(!apiPackageNames.isEmpty(), "No api package name specified; cannot find api classes.");
+            return new StackServer(this);
+        }
+
+        public void start() throws Exception {
             new StackServer(this).start();
         }
     }
@@ -203,8 +204,10 @@ public class StackServer {
             beanConfig.setTitle(this.builder.title);
             beanConfig.setDescription(this.builder.description);
             beanConfig.setBasePath("/");
-            beanConfig.setResourcePackage(Joiner.on(",").join(
-                    getResources().stream().map(Class::getPackage).map(Package::getName).collect(Collectors.toSet())));
+            beanConfig.setResourcePackage(Joiner.on(",").join(getResources().stream()
+                    .map(Class::getPackage)
+                    .map(Package::getName)
+                    .collect(Collectors.toSet())));
             beanConfig.setScan(true);
 
             handlers.addHandler(buildSwaggerContext());

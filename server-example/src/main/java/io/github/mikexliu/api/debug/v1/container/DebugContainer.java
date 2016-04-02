@@ -10,7 +10,7 @@ public class DebugContainer extends DebugResource {
     }
 
     @Override
-    public String getException() {
+    public void getException() {
         throw new IllegalStateException("Exception");
     }
 }

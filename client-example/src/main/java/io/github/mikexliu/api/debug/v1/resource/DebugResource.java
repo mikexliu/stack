@@ -22,5 +22,5 @@ public abstract class DebugResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     @Path("/get-exception")
-    public abstract String getException();
+    public abstract void getException();
 }
