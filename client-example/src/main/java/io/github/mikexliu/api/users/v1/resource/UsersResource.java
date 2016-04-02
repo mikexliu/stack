@@ -1,4 +1,4 @@
-package io.github.mikexliu.api.resource;
+package io.github.mikexliu.api.users.v1.resource;
 
 import io.github.mikexliu.collect.User;
 import io.swagger.annotations.Api;

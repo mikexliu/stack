@@ -16,10 +16,11 @@ public class Main {
                 .withDescription("server-example description")
                 .withVersion("0.0.1-SNAPSHOT")
                 .withApiPackageName("io.github.mikexliu.api")
-                .withBackModules(ServicesManagerModule.class)
-                .withFrontModules(TimedModule.class)
-                .withFrontModules(ScheduledServiceModule.class)
-                .withFrontModules(ServiceModule.class)
+                .withBackModule(ServicesManagerModule.class)
+                .withFrontModule(TimedModule.class)
+                .withFrontModule(ScheduledServiceModule.class)
+                .withFrontModule(ServiceModule.class)
+                .withCorsEnabled()
                 .withPort(5454)
                 .start();
     }

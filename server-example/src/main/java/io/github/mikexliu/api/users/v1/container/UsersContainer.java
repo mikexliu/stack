@@ -1,4 +1,4 @@
-package io.github.mikexliu.api.container;
+package io.github.mikexliu.api.users.v1.container;
 
 import com.google.inject.Inject;
 import io.github.mikexliu.api.resource.UsersResource;

@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.DispatcherType;
 import javax.ws.rs.Path;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.LinkedList;
@@ -74,6 +73,7 @@ public class StackServer {
         private String swaggerUIDirectory = "swagger-ui";
 
         private int port = 5555;
+        private boolean corsEnabled = false;
 
         public Builder() {
             this.apiPackageNames = new LinkedList<>();
@@ -106,33 +106,23 @@ public class StackServer {
             return this;
         }
 
-        public Builder withPackageNames(final Collection<String> packageNames) {
-            this.apiPackageNames.addAll(packageNames);
-            return this;
-        }
-
         public Builder withApiPackageName(final String packageName) {
             this.apiPackageNames.add(packageName);
             return this;
         }
 
-        public Builder withFrontModules(final Collection<Class<? extends FrontModule>> modules) {
-            this.frontModules.addAll(modules);
+        public Builder withFrontModule(final Class<? extends FrontModule> frontModule) {
+            this.frontModules.add(frontModule);
             return this;
         }
 
-        public Builder withFrontModules(final Class<? extends FrontModule>... modules) {
-            this.frontModules.addAll(Arrays.asList(modules));
+        public Builder withBackModule(final Class<? extends BackModule> backModule) {
+            this.backModules.add(backModule);
             return this;
         }
 
-        public Builder withBackModules(final Collection<Class<? extends BackModule>> modules) {
-            this.backModules.addAll(modules);
-            return this;
-        }
-
-        public Builder withBackModules(final Class<? extends BackModule>... modules) {
-            this.backModules.addAll(Arrays.asList(modules));
+        public Builder withCorsEnabled() {
+            this.corsEnabled = true;
             return this;
         }
 
@@ -221,7 +211,7 @@ public class StackServer {
         servletContextHandler.setContextPath("/");
         servletContextHandler.addServlet(servletHolder, "/*");
 
-        final Injector childInjector = backInjector.createChildInjector(new SwaggerServletModule());
+        final Injector childInjector = backInjector.createChildInjector(new SwaggerServletModule(builder.corsEnabled));
 
         final FilterHolder guiceFilter = new FilterHolder(childInjector.getInstance(GuiceFilter.class));
         servletContextHandler.addFilter(guiceFilter, String.format("/%s/*", SWAGGER_FILTER), EnumSet.allOf(DispatcherType.class));

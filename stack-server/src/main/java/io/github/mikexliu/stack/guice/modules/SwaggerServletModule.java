@@ -24,6 +24,12 @@ import java.util.Map;
  */
 public class SwaggerServletModule extends ServletModule {
 
+    private final boolean corsEnabled;
+
+    public SwaggerServletModule(final boolean corsEnabled) {
+        this.corsEnabled = corsEnabled;
+    }
+
     @Override
     protected void configureServlets() {
         bind(GuiceContainer.class).in(Scopes.SINGLETON);
@@ -33,39 +39,38 @@ public class SwaggerServletModule extends ServletModule {
                 ResponseThrowableMapper.class.getPackage().getName());
         parameters.put(JSONConfiguration.FEATURE_POJO_MAPPING, "true");
         serve("/*").with(GuiceContainer.class, parameters);
-        filter("/*").through(new Filter() {
 
-            @Override
-            public void init(final FilterConfig filterConfig) throws ServletException {
+        if (corsEnabled) {
+            filter("/*").through(new Filter() {
 
-            }
+                @Override
+                public void init(final FilterConfig filterConfig) throws ServletException {
 
-            @Override
-            public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain) throws IOException, ServletException {
-                if (response instanceof HttpServletResponse) {
-                    HttpServletResponse alteredResponse = ((HttpServletResponse) response);
-                    addCorsHeader(alteredResponse);
                 }
 
-                chain.doFilter(request, response);
-            }
+                @Override
+                public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain) throws IOException, ServletException {
+                    if (response instanceof HttpServletResponse) {
+                        HttpServletResponse alteredResponse = ((HttpServletResponse) response);
+                        addCorsHeader(alteredResponse);
+                    }
 
-            /**
-             * TODO: make this optional
-             * @param response
-             */
-            private void addCorsHeader(HttpServletResponse response) {
-                response.addHeader("Access-Control-Allow-Origin", "*");
-                response.addHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, HEAD");
-                response.addHeader("Access-Control-Allow-Headers", "X-PINGOTHER, Origin, X-Requested-With, Content-Type, Accept");
-                response.addHeader("Access-Control-Max-Age", "1728000");
-            }
+                    chain.doFilter(request, response);
+                }
 
-            @Override
-            public void destroy() {
+                private void addCorsHeader(HttpServletResponse response) {
+                    response.addHeader("Access-Control-Allow-Origin", "*");
+                    response.addHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, HEAD");
+                    response.addHeader("Access-Control-Allow-Headers", "X-PINGOTHER, Origin, X-Requested-With, Content-Type, Accept");
+                    response.addHeader("Access-Control-Max-Age", "1728000");
+                }
 
-            }
-        });
+                @Override
+                public void destroy() {
+
+                }
+            });
+        }
 
         bind(ResponseThrowableMapper.class).toInstance(new ResponseThrowableMapper());
     }

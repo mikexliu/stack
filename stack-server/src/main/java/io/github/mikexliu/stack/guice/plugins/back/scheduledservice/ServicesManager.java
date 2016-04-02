@@ -42,15 +42,21 @@ public class ServicesManager {
 
     public void start(final String name) {
         if (services.containsKey(name)) {
-            log.info("Starting " + name);
-            services.get(name).startAsync();
+            final AbstractScheduledService service = services.get(name);
+            if (!service.isRunning()) {
+                log.info("Starting " + name);
+                services.get(name).startAsync();
+            }
         }
     }
 
     public void stop(final String name) {
         if (services.containsKey(name)) {
-            log.info("Stopping " + name);
-            services.get(name).stopAsync();
+            final AbstractScheduledService service = services.get(name);
+            if (service.isRunning()) {
+                log.info("Stopping " + name);
+                services.get(name).stopAsync();
+            }
         }
     }
 
