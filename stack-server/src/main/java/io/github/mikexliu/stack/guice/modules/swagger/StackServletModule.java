@@ -46,17 +46,12 @@ public class StackServletModule extends ServletModule {
 
             @Override
             public void init(final FilterConfig filterConfig) throws ServletException {
-                log.info("Filter: " + filterConfig.getInitParameterNames());
             }
 
             @Override
             public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain) throws IOException, ServletException {
-                if (response instanceof HttpServletResponse) {
-                    HttpServletResponse alteredResponse = ((HttpServletResponse) response);
-
-                    if (corsEnabled) {
-                        addCorsHeader(alteredResponse);
-                    }
+                if (corsEnabled && response instanceof HttpServletResponse) {
+                    addCorsHeader((HttpServletResponse) response);
                 }
 
                 chain.doFilter(request, response);
@@ -71,7 +66,6 @@ public class StackServletModule extends ServletModule {
 
             @Override
             public void destroy() {
-
             }
         });
 

@@ -59,7 +59,8 @@ public class StackServer {
     private final Builder builder;
 
     private StackServer(final Builder builder) throws Exception {
-        Resource.setDefaultUseCaches(false); // https://www.javacodegeeks.com/2013/10/swagger-make-developers-love-working-with-your-rest-api.html
+        // https://www.javacodegeeks.com/2013/10/swagger-make-developers-love-working-with-your-rest-api.html
+        Resource.setDefaultUseCaches(false);
 
         this.builder = builder;
 
@@ -192,9 +193,11 @@ public class StackServer {
             this.stackPlugins = new LinkedList<>();
         }
 
-        // Servlet Configurations
-        //
-        //
+        /**
+         *
+         * @param port
+         * @return
+         */
         public Builder withPort(final int port) {
             this.port = port;
             return this;
@@ -210,9 +213,11 @@ public class StackServer {
             return this;
         }
 
-        // Package name of @Api implementations
-        //
-        //
+        /**
+         * Package name of @Api implementations
+         * @param packageName
+         * @return
+         */
         public Builder withApiPackageName(final String packageName) {
             this.apiPackageNames.add(packageName);
             return this;
@@ -248,9 +253,10 @@ public class StackServer {
             return this;
         }
 
-        // Swagger Configurations
-        //
-        //
+        /**
+         *
+         * @return
+         */
         public Builder withSwaggerEnabled() {
             this.swaggerEnabled = true;
             return this;
