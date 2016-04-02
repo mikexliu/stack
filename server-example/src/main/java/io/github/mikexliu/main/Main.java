@@ -2,6 +2,8 @@ package io.github.mikexliu.main;
 
 import io.github.mikexliu.guice.modules.ScheduledServiceModule;
 import io.github.mikexliu.guice.modules.ServiceModule;
+import io.github.mikexliu.stack.guice.plugins.back.scheduledservice.ServicesManagerModule;
+import io.github.mikexliu.stack.guice.plugins.front.timed.TimedModule;
 import io.github.mikexliu.stack.server.StackServer;
 
 /**
@@ -14,7 +16,10 @@ public class Main {
                 .withDescription("server-example description")
                 .withVersion("0.0.1-SNAPSHOT")
                 .withApiPackageName("io.github.mikexliu.api")
-                .withModules(new ScheduledServiceModule(), new ServiceModule())
+                .withBackModules(ServicesManagerModule.class)
+                .withFrontModules(TimedModule.class)
+                .withFrontModules(ScheduledServiceModule.class)
+                .withFrontModules(ServiceModule.class)
                 .withPort(5454)
                 .start();
     }

@@ -6,15 +6,14 @@ import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
-import com.google.inject.Module;
 import com.google.inject.servlet.GuiceFilter;
 import com.google.inject.servlet.GuiceServletContextListener;
-import io.github.mikexliu.stack.guice.plugins.front.timed.TimedModule;
 import io.github.mikexliu.stack.guice.modules.SwaggerServletModule;
 import io.github.mikexliu.stack.guice.modules.apis.ContainersModule;
 import io.github.mikexliu.stack.guice.modules.apis.ResourcesModule;
+import io.github.mikexliu.stack.guice.plugins.back.BackModule;
 import io.github.mikexliu.stack.guice.plugins.back.scheduledservice.ServicesManager;
-import io.github.mikexliu.stack.guice.plugins.back.scheduledservice.ServicesManagerModule;
+import io.github.mikexliu.stack.guice.plugins.front.FrontModule;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
 import org.eclipse.jetty.server.Server;
@@ -65,7 +64,8 @@ public class StackServer {
 
     public static final class Builder {
         private final List<String> apiPackageNames;
-        private final List<Module> modules;
+        private final List<Class<? extends FrontModule>> frontModules;
+        private final List<Class<? extends BackModule>> backModules;
 
         private String title = "stack";
         private String version = "0.0.1";
@@ -77,7 +77,8 @@ public class StackServer {
 
         public Builder() {
             this.apiPackageNames = new LinkedList<>();
-            this.modules = new LinkedList<>();
+            this.frontModules = new LinkedList<>();
+            this.backModules = new LinkedList<>();
         }
 
         public Builder withTitle(final String title) {
@@ -115,24 +116,29 @@ public class StackServer {
             return this;
         }
 
-        public Builder withModules(final Collection<Module> modules) {
-            this.modules.addAll(modules);
+        public Builder withFrontModules(final Collection<Class<? extends FrontModule>> modules) {
+            this.frontModules.addAll(modules);
             return this;
         }
 
-        public Builder withModules(final Module... modules) {
-            this.modules.addAll(Arrays.asList(modules));
+        public Builder withFrontModules(final Class<? extends FrontModule>... modules) {
+            this.frontModules.addAll(Arrays.asList(modules));
             return this;
         }
 
-        public Builder withModule(final Module module) {
-            this.modules.add(module);
+        public Builder withBackModules(final Collection<Class<? extends BackModule>> modules) {
+            this.backModules.addAll(modules);
+            return this;
+        }
+
+        public Builder withBackModules(final Class<? extends BackModule>... modules) {
+            this.backModules.addAll(Arrays.asList(modules));
             return this;
         }
 
         public void start() throws Exception {
             Preconditions.checkArgument(!apiPackageNames.isEmpty(), "No api package name specified; cannot find api classes.");
-            Preconditions.checkArgument(!modules.isEmpty(), "No modules specified; cannot instantiate server.");
+            Preconditions.checkArgument(!frontModules.isEmpty(), "No modules specified; cannot instantiate server.");
             new StackServer(this).start();
         }
     }
@@ -140,24 +146,29 @@ public class StackServer {
     private final Builder builder;
 
     private final Server server;
-    private final Injector injector;
+    private final Injector backInjector;
 
-    private StackServer(final Builder builder) {
+    private StackServer(final Builder builder) throws Exception {
         Resource.setDefaultUseCaches(false); // https://www.javacodegeeks.com/2013/10/swagger-make-developers-love-working-with-your-rest-api.html
 
         this.builder = builder;
 
         // stack modules
-        final List<Module> modules = builder.modules;
-        modules.add(new TimedModule());
-        modules.add(new ContainersModule(builder.apiPackageNames));
-        final Injector stackInjector = Guice.createInjector(builder.modules);
+        final List<FrontModule> frontModules = new LinkedList<>();
+        for (final Class<? extends FrontModule> frontModuleClass : this.builder.frontModules) {
+            frontModules.add(frontModuleClass.newInstance());
+        }
+
+        frontModules.add(new ContainersModule(builder.apiPackageNames));
+        final Injector frontInjector = Guice.createInjector(frontModules);
 
         // meta modules
-        final Collection<Module> metaModules = new LinkedList<>();
-        metaModules.add(new ServicesManagerModule(stackInjector));
-        metaModules.add(new ResourcesModule(builder.apiPackageNames, stackInjector));
-        this.injector = stackInjector.createChildInjector(metaModules);
+        final Collection<BackModule> backModules = new LinkedList<>();
+        for (final Class<? extends BackModule> backModuleClass : this.builder.backModules) {
+            backModules.add(backModuleClass.getConstructor(Injector.class).newInstance(frontInjector));
+        }
+        backModules.add(new ResourcesModule(builder.apiPackageNames, frontInjector));
+        this.backInjector = frontInjector.createChildInjector(backModules);
 
         this.server = new Server(builder.port);
     }
@@ -177,17 +188,17 @@ public class StackServer {
         handlers.addHandler(buildContext());
         server.setHandler(handlers);
 
-        Optional.of(this.injector.getInstance(ServicesManager.class)).ifPresent(s -> s.startAll());
+        Optional.of(this.backInjector.getInstance(ServicesManager.class)).ifPresent(s -> s.startAll());
         server.start();
     }
 
     public void stop() throws Exception {
-        Optional.of(this.injector.getInstance(ServicesManager.class)).ifPresent(s -> s.stopAll());
+        Optional.of(this.backInjector.getInstance(ServicesManager.class)).ifPresent(s -> s.stopAll());
         server.stop();
     }
 
     private Set<Class<?>> getResources() {
-        final Set<Key<?>> keys = injector.getAllBindings().keySet();
+        final Set<Key<?>> keys = backInjector.getAllBindings().keySet();
         final Set<Class<?>> resources = Sets.newHashSet();
         for (final Key<?> key : keys) {
             final Class<?> classType = key.getTypeLiteral().getRawType();
@@ -210,7 +221,7 @@ public class StackServer {
         servletContextHandler.setContextPath("/");
         servletContextHandler.addServlet(servletHolder, "/*");
 
-        final Injector childInjector = injector.createChildInjector(new SwaggerServletModule());
+        final Injector childInjector = backInjector.createChildInjector(new SwaggerServletModule());
 
         final FilterHolder guiceFilter = new FilterHolder(childInjector.getInstance(GuiceFilter.class));
         servletContextHandler.addFilter(guiceFilter, String.format("/%s/*", SWAGGER_FILTER), EnumSet.allOf(DispatcherType.class));

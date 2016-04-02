@@ -1,13 +1,13 @@
 package io.github.mikexliu.guice.modules;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
+import io.github.mikexliu.stack.guice.plugins.front.FrontModule;
 import service.UsersCache;
 
 /**
  * Created by mliu on 3/28/16.
  */
-public class ServiceModule extends AbstractModule {
+public class ServiceModule extends FrontModule {
 
     @Override
     protected void configure() {

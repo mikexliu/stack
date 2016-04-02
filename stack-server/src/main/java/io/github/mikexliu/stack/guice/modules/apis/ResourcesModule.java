@@ -3,8 +3,8 @@ package io.github.mikexliu.stack.guice.modules.apis;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.google.common.reflect.ClassPath;
-import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
+import io.github.mikexliu.stack.guice.plugins.back.BackModule;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 import org.slf4j.Logger;
@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ResourcesModule extends AbstractModule {
+public class ResourcesModule extends BackModule {
 
     private static final Logger log = LoggerFactory.getLogger(ResourcesModule.class);
 
