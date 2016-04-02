@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 public class TimedInterceptor implements MethodInterceptor {
 
-    final Logger log = LoggerFactory.getLogger(Timed.class);
+    final Logger log = LoggerFactory.getLogger(TimedInterceptor.class);
 
     @Override
     public Object invoke(final MethodInvocation invocation) throws Throwable {

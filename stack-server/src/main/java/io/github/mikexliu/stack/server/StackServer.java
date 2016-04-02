@@ -42,10 +42,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * TODO: use swagger-core annotations explicitly (remove BeanConfig and use
- * better scanner)
- * https://github.com/swagger-api/swagger-core/wiki/Annotations-1.5.X#api
- * <p>
  * TODO: publish this to central repository.
  * https://maven.apache.org/guides/mini/guide-central-repository-upload.html
  */
@@ -54,7 +50,117 @@ public class StackServer {
     private static final Logger log = LoggerFactory.getLogger(StackServer.class);
 
     private static final String SWAGGER_CONTEXT_PATH = "/docs/";
-    private static final String SWAGGER_FILTER = "api";
+    private static final String JERSEY_CONTEXT_PATH = "api";
+
+    private final Server server;
+    private final Injector backInjector;
+
+    private final Builder builder;
+
+    private StackServer(final Builder builder) throws Exception {
+        Resource.setDefaultUseCaches(false); // https://www.javacodegeeks.com/2013/10/swagger-make-developers-love-working-with-your-rest-api.html
+
+        this.builder = builder;
+
+        // stack modules
+        final List<AppPlugin> appPlugins = new LinkedList<>();
+        for (final Class<? extends AppPlugin> frontModuleClass : this.builder.frontModules) {
+            appPlugins.add(frontModuleClass.newInstance());
+        }
+
+        appPlugins.add(new ContainersModule(builder.apiPackageNames));
+        final Injector frontInjector = Guice.createInjector(appPlugins);
+
+        // meta modules
+        final Collection<StackPlugin> stackPlugins = new LinkedList<>();
+        for (final Class<? extends StackPlugin> backModuleClass : this.builder.backModules) {
+            stackPlugins.add(backModuleClass.getConstructor(Injector.class).newInstance(frontInjector));
+        }
+        stackPlugins.add(new ResourcesModule(builder.apiPackageNames, frontInjector));
+        this.backInjector = frontInjector.createChildInjector(stackPlugins);
+
+        this.server = new Server(builder.port);
+    }
+
+    public void start() throws Exception {
+        final HandlerList handlers = new HandlerList();
+
+        if (builder.swaggerEnabled) {
+            final BeanConfig beanConfig = new BeanConfig();
+            beanConfig.setVersion(this.builder.version);
+            beanConfig.setTitle(this.builder.title);
+            beanConfig.setDescription(this.builder.description);
+            beanConfig.setBasePath("/");
+            beanConfig.setResourcePackage(Joiner.on(",").join(getResources().stream()
+                    .map(Class::getPackage)
+                    .map(Package::getName)
+                    .collect(Collectors.toSet())));
+            beanConfig.setScan(true);
+
+            handlers.addHandler(buildSwaggerContext());
+        }
+
+        handlers.addHandler(buildJerseyContext());
+        server.setHandler(handlers);
+        server.start();
+    }
+
+    public void stop() throws Exception {
+        server.stop();
+    }
+
+    private Set<Class<?>> getResources() {
+        final Set<Key<?>> keys = backInjector.getAllBindings().keySet();
+        final Set<Class<?>> resources = Sets.newHashSet();
+        for (final Key<?> key : keys) {
+            final Class<?> classType = key.getTypeLiteral().getRawType();
+            if (classType.isAnnotationPresent(Path.class)) {
+                resources.add(classType);
+            }
+        }
+        return resources;
+    }
+
+    private ContextHandler buildJerseyContext() {
+        final Set<String> resources = Sets.newHashSet();
+        resources.add(ApiListingResource.class.getPackage().getName());
+        final String[] packages = resources.toArray(new String[resources.size()]);
+        final ResourceConfig resourceConfig = new ResourceConfig();
+        resourceConfig.packages(packages);
+
+        final ServletHolder servletHolder = new ServletHolder(new ServletContainer(resourceConfig));
+        final ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        servletContextHandler.setContextPath("/");
+        servletContextHandler.addServlet(servletHolder, "/*");
+        servletContextHandler.addServlet(DefaultServlet.class, "/");
+
+        final Injector servletInjector = backInjector.createChildInjector(new StackServletModule(builder.corsEnabled, builder.throwableResponseHandler));
+
+        final FilterHolder guiceFilter = new FilterHolder(servletInjector.getInstance(GuiceFilter.class));
+        servletContextHandler.addFilter(guiceFilter, String.format("/%s/*", JERSEY_CONTEXT_PATH), EnumSet.allOf(DispatcherType.class));
+        servletContextHandler.addEventListener(new GuiceServletContextListener() {
+            @Override
+            protected Injector getInjector() {
+                return servletInjector;
+            }
+        });
+
+        return servletContextHandler;
+    }
+
+    private ContextHandler buildSwaggerContext() throws URISyntaxException {
+        final ResourceHandler swaggerUIResourceHandler = new ResourceHandler();
+        swaggerUIResourceHandler.setResourceBase(getClass().getClassLoader().getResource(builder.swaggerUIDirectory).toURI().toString());
+        final ContextHandler swaggerUIContext = new ContextHandler();
+        swaggerUIContext.setContextPath(SWAGGER_CONTEXT_PATH);
+        swaggerUIContext.setHandler(swaggerUIResourceHandler);
+
+        return swaggerUIContext;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
 
     public static final class Builder {
 
@@ -161,111 +267,5 @@ public class StackServer {
         public void start() throws Exception {
             new StackServer(this).start();
         }
-    }
-
-    private final Builder builder;
-
-    private final Server server;
-    private final Injector backInjector;
-
-    private StackServer(final Builder builder) throws Exception {
-        Resource.setDefaultUseCaches(false); // https://www.javacodegeeks.com/2013/10/swagger-make-developers-love-working-with-your-rest-api.html
-
-        this.builder = builder;
-
-        // stack modules
-        final List<AppPlugin> appPlugins = new LinkedList<>();
-        for (final Class<? extends AppPlugin> frontModuleClass : this.builder.frontModules) {
-            appPlugins.add(frontModuleClass.newInstance());
-        }
-
-        appPlugins.add(new ContainersModule(builder.apiPackageNames));
-        final Injector frontInjector = Guice.createInjector(appPlugins);
-
-        // meta modules
-        final Collection<StackPlugin> stackPlugins = new LinkedList<>();
-        for (final Class<? extends StackPlugin> backModuleClass : this.builder.backModules) {
-            stackPlugins.add(backModuleClass.getConstructor(Injector.class).newInstance(frontInjector));
-        }
-        stackPlugins.add(new ResourcesModule(builder.apiPackageNames, frontInjector));
-        this.backInjector = frontInjector.createChildInjector(stackPlugins);
-
-        this.server = new Server(builder.port);
-    }
-
-    public void start() throws Exception {
-        final HandlerList handlers = new HandlerList();
-
-        if (builder.swaggerEnabled) {
-            final BeanConfig beanConfig = new BeanConfig();
-            beanConfig.setVersion(this.builder.version);
-            beanConfig.setTitle(this.builder.title);
-            beanConfig.setDescription(this.builder.description);
-            beanConfig.setBasePath("/");
-            beanConfig.setResourcePackage(Joiner.on(",").join(getResources().stream()
-                    .map(Class::getPackage)
-                    .map(Package::getName)
-                    .collect(Collectors.toSet())));
-            beanConfig.setScan(true);
-
-            handlers.addHandler(buildSwaggerContext());
-        }
-
-        handlers.addHandler(buildContext());
-        server.setHandler(handlers);
-        server.start();
-    }
-
-    public void stop() throws Exception {
-        server.stop();
-    }
-
-    private Set<Class<?>> getResources() {
-        final Set<Key<?>> keys = backInjector.getAllBindings().keySet();
-        final Set<Class<?>> resources = Sets.newHashSet();
-        for (final Key<?> key : keys) {
-            final Class<?> classType = key.getTypeLiteral().getRawType();
-            if (classType.isAnnotationPresent(Path.class)) {
-                resources.add(classType);
-            }
-        }
-        return resources;
-    }
-
-    private ContextHandler buildContext() {
-        final Set<String> resources = Sets.newHashSet();
-        resources.add(ApiListingResource.class.getPackage().getName());
-        final String[] packages = resources.toArray(new String[resources.size()]);
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.packages(packages);
-
-        final ServletHolder servletHolder = new ServletHolder(new ServletContainer(resourceConfig));
-        final ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        servletContextHandler.setContextPath("/");
-        servletContextHandler.addServlet(servletHolder, "/*");
-        servletContextHandler.addServlet(DefaultServlet.class, "/");
-
-        final Injector servletInjector = backInjector.createChildInjector(new StackServletModule(builder.corsEnabled, builder.throwableResponseHandler));
-
-        final FilterHolder guiceFilter = new FilterHolder(servletInjector.getInstance(GuiceFilter.class));
-        servletContextHandler.addFilter(guiceFilter, String.format("/%s/*", SWAGGER_FILTER), EnumSet.allOf(DispatcherType.class));
-        servletContextHandler.addEventListener(new GuiceServletContextListener() {
-            @Override
-            protected Injector getInjector() {
-                return servletInjector;
-            }
-        });
-
-        return servletContextHandler;
-    }
-
-    private ContextHandler buildSwaggerContext() throws URISyntaxException {
-        final ResourceHandler swaggerUIResourceHandler = new ResourceHandler();
-        swaggerUIResourceHandler.setResourceBase(getClass().getClassLoader().getResource(builder.swaggerUIDirectory).toURI().toString());
-        final ContextHandler swaggerUIContext = new ContextHandler();
-        swaggerUIContext.setContextPath(SWAGGER_CONTEXT_PATH);
-        swaggerUIContext.setHandler(swaggerUIResourceHandler);
-
-        return swaggerUIContext;
     }
 }

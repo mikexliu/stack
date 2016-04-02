@@ -1,6 +1,5 @@
 package io.github.mikexliu.stack.guice.plugins.stack.scheduledservice;
 
-import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.inject.Binding;
 import com.google.inject.Injector;
 import com.google.inject.Key;
@@ -12,17 +11,20 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class ScheduledServiceAutoStartPlugin extends StackPlugin {
+public final class ScheduledServiceAutoStartPlugin extends StackPlugin {
 
     private static final Logger log = LoggerFactory.getLogger(ScheduledServiceAutoStartPlugin.class);
 
+    private final Injector injector;
+
     public ScheduledServiceAutoStartPlugin(final Injector injector) {
-        startServices(injector);
-        addShutdownHook(injector);
+        this.injector = injector;
     }
 
     @Override
     protected void configure() {
+        startServices(injector);
+        addShutdownHook(injector);
     }
 
     private static List<com.google.common.util.concurrent.AbstractScheduledService> getScheduledServices(final Injector injector) {
@@ -40,14 +42,20 @@ public class ScheduledServiceAutoStartPlugin extends StackPlugin {
     }
 
     private static void startServices(final Injector injector) {
-        getScheduledServices(injector).forEach(AbstractScheduledService::startAsync);
+        getScheduledServices(injector).forEach(scheduledService -> {
+            log.info("Starting " + scheduledService);
+            scheduledService.startAsync();
+        });
     }
 
     private static void addShutdownHook(final Injector injector) {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                getScheduledServices(injector).forEach(AbstractScheduledService::stopAsync);
+                getScheduledServices(injector).forEach(scheduledService -> {
+                    log.info("Stopping " + scheduledService);
+                    scheduledService.stopAsync();
+                });
             }
         });
     }

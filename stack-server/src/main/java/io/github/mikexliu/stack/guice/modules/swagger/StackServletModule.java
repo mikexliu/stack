@@ -38,7 +38,6 @@ public class StackServletModule extends ServletModule {
                 ThrowableResponseMapper.class.getPackage().getName());
         parameters.put(JSONConfiguration.FEATURE_POJO_MAPPING, "true");
         serve("/*").with(GuiceContainer.class, parameters);
-
         filter("/*").through(new Filter() {
 
             @Override

@@ -8,7 +8,10 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ScheduledServiceManager {
+/**
+ * Package Private class
+ */
+class ScheduledServiceManager {
 
     private static final Logger log = LoggerFactory.getLogger(ScheduledServiceManager.class);
 

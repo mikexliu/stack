@@ -11,7 +11,7 @@ import javax.ws.rs.core.Response;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        new StackServer.Builder()
+        StackServer.builder()
                 .withTitle("server-example")
                 .withDescription("server-example description")
                 .withVersion("0.0.1-SNAPSHOT")
@@ -23,7 +23,9 @@ public class Main {
                 .withAppPlugin(ServerExampleModule.class)
                 .withCorsEnabled()
                 .withExceptionHandler(throwable ->
-                        Response.status(Response.Status.NOT_FOUND).entity("Not Found Message").build())
+                        Response.status(Response.Status.NOT_FOUND)
+                                .entity("Example Server Not Found Message")
+                                .build())
                 .withPort(5454)
                 .build()
                 .start();

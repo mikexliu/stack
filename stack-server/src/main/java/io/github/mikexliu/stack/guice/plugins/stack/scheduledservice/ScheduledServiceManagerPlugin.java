@@ -17,14 +17,12 @@ import java.util.Map;
  * Binds ServiceResource into swagger.
  * Finds all AbstractScheduledServices and starts them.
  */
-public class ScheduledServiceManagerPlugin extends StackPlugin {
+public final class ScheduledServiceManagerPlugin extends StackPlugin {
 
-    private final ScheduledServiceManager scheduledServiceManager;
+    private final Injector injector;
 
     public ScheduledServiceManagerPlugin(final Injector injector) {
-        scheduledServiceManager = createServicesManager(injector);
-
-        //addShutdownHook(scheduledServiceManager);
+        this.injector = injector;
     }
 
     @Override
@@ -35,7 +33,7 @@ public class ScheduledServiceManagerPlugin extends StackPlugin {
     @Singleton
     @Provides
     public ScheduledServiceManager servicesManagerProvider() {
-        return scheduledServiceManager;
+        return createServicesManager(injector);
     }
 
     private static ScheduledServiceManager createServicesManager(final Injector injector) {
@@ -53,13 +51,4 @@ public class ScheduledServiceManagerPlugin extends StackPlugin {
         scheduledServices.forEach(scheduledServiceManager::addService);
         return scheduledServiceManager;
     }
-
-//    private static void addShutdownHook(final ScheduledServiceManager scheduledServiceManager) {
-//        Runtime.getRuntime().addShutdownHook(new Thread() {
-//            @Override
-//            public void run() {
-//                scheduledServiceManager.stopAll();
-//            }
-//        });
-//    }
 }
