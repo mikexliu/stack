@@ -8,9 +8,10 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.servlet.GuiceFilter;
 import com.google.inject.servlet.GuiceServletContextListener;
-import io.github.mikexliu.stack.guice.modules.SwaggerServletModule;
 import io.github.mikexliu.stack.guice.modules.apis.ContainersModule;
 import io.github.mikexliu.stack.guice.modules.apis.ResourcesModule;
+import io.github.mikexliu.stack.guice.modules.swagger.StackServletModule;
+import io.github.mikexliu.stack.guice.modules.swagger.handler.exception.ThrowableResponseHandler;
 import io.github.mikexliu.stack.guice.plugins.back.BackModule;
 import io.github.mikexliu.stack.guice.plugins.back.scheduledservice.ServicesManager;
 import io.github.mikexliu.stack.guice.plugins.front.FrontModule;
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.servlet.DispatcherType;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.Response;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -62,6 +64,7 @@ public class StackServer {
     private static final String SWAGGER_FILTER = "api";
 
     public static final class Builder {
+
         private final List<String> apiPackageNames;
         private final List<Class<? extends FrontModule>> frontModules;
         private final List<Class<? extends BackModule>> backModules;
@@ -70,15 +73,74 @@ public class StackServer {
         private String version = "0.0.1";
         private String description = "stack makes it easy to generate rest endpoints.";
 
-        private String swaggerUIDirectory = "swagger-ui";
-
         private int port = 5555;
         private boolean corsEnabled = false;
+        private ThrowableResponseHandler throwableResponseHandler = throwable -> {
+            log.warn("Server encountered exception", throwable);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        };
+
+        private boolean swaggerEnabled = false;
+        private String swaggerUIDirectory = "swagger-ui";
 
         public Builder() {
             this.apiPackageNames = new LinkedList<>();
             this.frontModules = new LinkedList<>();
             this.backModules = new LinkedList<>();
+        }
+
+        // Servlet Configurations
+        //
+        //
+        public Builder withPort(final int port) {
+            this.port = port;
+            return this;
+        }
+
+        public Builder withCorsEnabled() {
+            this.corsEnabled = true;
+            return this;
+        }
+
+        public Builder withExceptionHandler(final ThrowableResponseHandler throwableResponseHandler) {
+            this.throwableResponseHandler = throwableResponseHandler;
+            return this;
+        }
+
+        // Package name of @Api implementations
+        public Builder withApiPackageName(final String packageName) {
+            this.apiPackageNames.add(packageName);
+            return this;
+        }
+
+        // Front-end Modules
+        //
+        //
+        public Builder withFrontModule(final Class<? extends FrontModule> frontModule) {
+            this.frontModules.add(frontModule);
+            return this;
+        }
+
+        // Back-end Modules
+        //
+        //
+        public Builder withBackModule(final Class<? extends BackModule> backModule) {
+            this.backModules.add(backModule);
+            return this;
+        }
+
+        // Swagger Configurations
+        //
+        //
+        public Builder withSwaggerEnabled() {
+            this.swaggerEnabled = true;
+            return this;
+        }
+
+        public Builder withSwaggerUiDirectory(final String swaggerUIDirectory) {
+            this.swaggerUIDirectory = swaggerUIDirectory;
+            this.swaggerEnabled = true;
+            return this;
         }
 
         public Builder withTitle(final String title) {
@@ -96,39 +158,8 @@ public class StackServer {
             return this;
         }
 
-        public Builder withSwaggerUiDirectory(final String swaggerUIDirectory) {
-            this.swaggerUIDirectory = swaggerUIDirectory;
-            return this;
-        }
-
-        public Builder withPort(final int port) {
-            this.port = port;
-            return this;
-        }
-
-        public Builder withApiPackageName(final String packageName) {
-            this.apiPackageNames.add(packageName);
-            return this;
-        }
-
-        public Builder withFrontModule(final Class<? extends FrontModule> frontModule) {
-            this.frontModules.add(frontModule);
-            return this;
-        }
-
-        public Builder withBackModule(final Class<? extends BackModule> backModule) {
-            this.backModules.add(backModule);
-            return this;
-        }
-
-        public Builder withCorsEnabled() {
-            this.corsEnabled = true;
-            return this;
-        }
-
         public void start() throws Exception {
             Preconditions.checkArgument(!apiPackageNames.isEmpty(), "No api package name specified; cannot find api classes.");
-            Preconditions.checkArgument(!frontModules.isEmpty(), "No modules specified; cannot instantiate server.");
             new StackServer(this).start();
         }
     }
@@ -164,17 +195,21 @@ public class StackServer {
     }
 
     public void start() throws Exception {
-        final BeanConfig beanConfig = new BeanConfig();
-        beanConfig.setVersion(this.builder.version);
-        beanConfig.setTitle(this.builder.title);
-        beanConfig.setDescription(this.builder.description);
-        beanConfig.setResourcePackage(Joiner.on(",").join(
-                getResources().stream().map(Class::getPackage).map(Package::getName).collect(Collectors.toSet())));
-        beanConfig.setScan(true);
-        beanConfig.setBasePath("/");
-
         final HandlerList handlers = new HandlerList();
-        handlers.addHandler(buildSwaggerContext());
+
+        if (builder.swaggerEnabled) {
+            final BeanConfig beanConfig = new BeanConfig();
+            beanConfig.setVersion(this.builder.version);
+            beanConfig.setTitle(this.builder.title);
+            beanConfig.setDescription(this.builder.description);
+            beanConfig.setBasePath("/");
+            beanConfig.setResourcePackage(Joiner.on(",").join(
+                    getResources().stream().map(Class::getPackage).map(Package::getName).collect(Collectors.toSet())));
+            beanConfig.setScan(true);
+
+            handlers.addHandler(buildSwaggerContext());
+        }
+
         handlers.addHandler(buildContext());
         server.setHandler(handlers);
 
@@ -210,16 +245,16 @@ public class StackServer {
         final ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
         servletContextHandler.setContextPath("/");
         servletContextHandler.addServlet(servletHolder, "/*");
-
-        final Injector childInjector = backInjector.createChildInjector(new SwaggerServletModule(builder.corsEnabled));
-
-        final FilterHolder guiceFilter = new FilterHolder(childInjector.getInstance(GuiceFilter.class));
-        servletContextHandler.addFilter(guiceFilter, String.format("/%s/*", SWAGGER_FILTER), EnumSet.allOf(DispatcherType.class));
         servletContextHandler.addServlet(DefaultServlet.class, "/");
+
+        final Injector servletInjector = backInjector.createChildInjector(new StackServletModule(builder.corsEnabled, builder.throwableResponseHandler));
+
+        final FilterHolder guiceFilter = new FilterHolder(servletInjector.getInstance(GuiceFilter.class));
+        servletContextHandler.addFilter(guiceFilter, String.format("/%s/*", SWAGGER_FILTER), EnumSet.allOf(DispatcherType.class));
         servletContextHandler.addEventListener(new GuiceServletContextListener() {
             @Override
             protected Injector getInjector() {
-                return childInjector;
+                return servletInjector;
             }
         });
 

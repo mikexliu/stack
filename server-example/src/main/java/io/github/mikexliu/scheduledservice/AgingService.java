@@ -32,7 +32,7 @@ public class AgingService extends AbstractScheduledService {
         try {
             usersCache.getAllUsers().forEach(User::growUp);
         } catch (Exception e) {
-            log.warn(getClass() + " failed.", e);
+            log.warn(getClass() + " failed", e);
         }
     }
 }
