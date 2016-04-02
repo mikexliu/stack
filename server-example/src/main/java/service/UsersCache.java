@@ -6,9 +6,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by mliu on 3/28/16.
- */
 public class UsersCache {
 
     private final Map<String, User> users;

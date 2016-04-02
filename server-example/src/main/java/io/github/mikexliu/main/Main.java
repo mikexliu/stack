@@ -6,9 +6,6 @@ import io.github.mikexliu.stack.guice.plugins.back.scheduledservice.ServicesMana
 import io.github.mikexliu.stack.guice.plugins.front.timed.TimedModule;
 import io.github.mikexliu.stack.server.StackServer;
 
-/**
- * Created by mliu on 3/27/16.
- */
 public class Main {
     public static void main(String[] args) throws Exception {
         new StackServer.Builder()

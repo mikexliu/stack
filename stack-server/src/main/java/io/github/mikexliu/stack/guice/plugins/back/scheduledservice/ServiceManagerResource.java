@@ -16,9 +16,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import java.util.Map;
 
-/**
- * Created by mliu on 3/27/16.
- */
 @Api(value = "Scheduled Services manager api", description = "Complete control Scheduled Services")
 @Path("/api/stack/scheduled-services/v1")
 public final class ServiceManagerResource {

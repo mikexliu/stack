@@ -3,9 +3,6 @@ package io.github.mikexliu.stack.guice.plugins.front.timed;
 import com.google.inject.matcher.Matchers;
 import io.github.mikexliu.stack.guice.plugins.front.FrontModule;
 
-/**
- * Created by mliu on 3/27/16.
- */
 public class TimedModule extends FrontModule {
 
     @Override

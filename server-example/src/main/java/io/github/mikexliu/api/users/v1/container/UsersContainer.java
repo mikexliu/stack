@@ -1,7 +1,7 @@
 package io.github.mikexliu.api.users.v1.container;
 
 import com.google.inject.Inject;
-import io.github.mikexliu.api.resource.UsersResource;
+import io.github.mikexliu.api.users.v1.resource.UsersResource;
 import io.github.mikexliu.collect.User;
 import service.UsersCache;
 

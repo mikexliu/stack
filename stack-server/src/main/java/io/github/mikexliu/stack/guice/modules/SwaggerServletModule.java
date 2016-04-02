@@ -19,9 +19,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by mliu on 3/27/16.
- */
 public class SwaggerServletModule extends ServletModule {
 
     private final boolean corsEnabled;

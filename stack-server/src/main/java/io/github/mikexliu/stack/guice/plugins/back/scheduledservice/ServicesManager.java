@@ -8,9 +8,6 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by mliu on 1/14/16.
- */
 public class ServicesManager {
 
     private static final Logger log = LoggerFactory.getLogger(ServicesManager.class);
