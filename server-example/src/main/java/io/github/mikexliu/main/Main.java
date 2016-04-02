@@ -1,7 +1,6 @@
 package io.github.mikexliu.main;
 
-import io.github.mikexliu.guice.modules.ScheduledServiceModule;
-import io.github.mikexliu.guice.modules.ServiceModule;
+import io.github.mikexliu.guice.modules.ServerExampleModule;
 import io.github.mikexliu.stack.guice.plugins.back.scheduledservice.ServicesManagerModule;
 import io.github.mikexliu.stack.guice.plugins.front.timed.TimedModule;
 import io.github.mikexliu.stack.server.StackServer;
@@ -18,8 +17,7 @@ public class Main {
                 .withSwaggerEnabled()
                 .withBackModule(ServicesManagerModule.class)
                 .withFrontModule(TimedModule.class)
-                .withFrontModule(ScheduledServiceModule.class)
-                .withFrontModule(ServiceModule.class)
+                .withFrontModule(ServerExampleModule.class)
                 .withCorsEnabled()
                 .withExceptionHandler(throwable -> Response.status(Response.Status.FORBIDDEN).build())
                 .withPort(5454)
