@@ -20,11 +20,11 @@ public class Main {
                 .withStackPlugin(ScheduledServiceManagerPlugin.class)
                 .withStackPlugin(ScheduledServiceAutoStartPlugin.class)
                 .withAppPlugin(TimedPlugin.class)
-                .withAppPlugin(ServerExampleModule.class)
+                .withAppModule(new ServerExampleModule())
                 .withCorsEnabled()
                 .withExceptionHandler(throwable ->
                         Response.status(Response.Status.NOT_FOUND)
-                                .entity("Example Server Not Found Message")
+                                .entity("Example Server Resource Not Found")
                                 .build())
                 .withPort(5454)
                 .build()

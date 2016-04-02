@@ -11,6 +11,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Auto starts and registers a shutdown hook to all SchceduledServices.
+ */
 public final class ScheduledServiceAutoStartPlugin extends StackPlugin {
 
     private static final Logger log = LoggerFactory.getLogger(ScheduledServiceAutoStartPlugin.class);

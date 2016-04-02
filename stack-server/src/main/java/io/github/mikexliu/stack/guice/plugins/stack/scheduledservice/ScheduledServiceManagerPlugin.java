@@ -14,8 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Binds ServiceResource into swagger.
- * Finds all AbstractScheduledServices and starts them.
+ * Provides a REST interface into managing ScheduledServices.
  */
 public final class ScheduledServiceManagerPlugin extends StackPlugin {
 

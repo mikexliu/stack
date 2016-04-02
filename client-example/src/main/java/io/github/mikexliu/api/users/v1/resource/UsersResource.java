@@ -12,6 +12,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.util.Map;
 
 @Api(value = "users api", description = "")
 @Path("/api/users/v1")
@@ -33,4 +34,10 @@ public abstract class UsersResource {
             @ApiParam(value = "id", required = true)
             @PathParam(value = "id")
             final String id);
+
+    @ApiOperation(value = "all", notes = "get all user")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/all")
+    public abstract Map<String, User> all();
 }

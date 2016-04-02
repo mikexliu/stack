@@ -6,6 +6,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
+import com.google.inject.Module;
 import com.google.inject.servlet.GuiceFilter;
 import com.google.inject.servlet.GuiceServletContextListener;
 import io.github.mikexliu.stack.guice.modules.apis.ContainersModule;
@@ -63,8 +64,9 @@ public class StackServer {
         this.builder = builder;
 
         // stack modules
-        final List<AppPlugin> appPlugins = new LinkedList<>();
-        for (final Class<? extends AppPlugin> frontModuleClass : this.builder.frontModules) {
+        final List<Module> appPlugins = new LinkedList<>();
+        appPlugins.addAll(builder.appModules);
+        for (final Class<? extends AppPlugin> frontModuleClass : this.builder.appPlugins) {
             appPlugins.add(frontModuleClass.newInstance());
         }
 
@@ -73,7 +75,7 @@ public class StackServer {
 
         // meta modules
         final Collection<StackPlugin> stackPlugins = new LinkedList<>();
-        for (final Class<? extends StackPlugin> backModuleClass : this.builder.backModules) {
+        for (final Class<? extends StackPlugin> backModuleClass : this.builder.stackPlugins) {
             stackPlugins.add(backModuleClass.getConstructor(Injector.class).newInstance(frontInjector));
         }
         stackPlugins.add(new ResourcesModule(builder.apiPackageNames, frontInjector));
@@ -86,17 +88,6 @@ public class StackServer {
         final HandlerList handlers = new HandlerList();
 
         if (builder.swaggerEnabled) {
-            final BeanConfig beanConfig = new BeanConfig();
-            beanConfig.setVersion(this.builder.version);
-            beanConfig.setTitle(this.builder.title);
-            beanConfig.setDescription(this.builder.description);
-            beanConfig.setBasePath("/");
-            beanConfig.setResourcePackage(Joiner.on(",").join(getResources().stream()
-                    .map(Class::getPackage)
-                    .map(Package::getName)
-                    .collect(Collectors.toSet())));
-            beanConfig.setScan(true);
-
             handlers.addHandler(buildSwaggerContext());
         }
 
@@ -149,6 +140,17 @@ public class StackServer {
     }
 
     private ContextHandler buildSwaggerContext() throws URISyntaxException {
+        final BeanConfig beanConfig = new BeanConfig();
+        beanConfig.setVersion(this.builder.version);
+        beanConfig.setTitle(this.builder.title);
+        beanConfig.setDescription(this.builder.description);
+        beanConfig.setBasePath("/");
+        beanConfig.setResourcePackage(Joiner.on(",").join(getResources().stream()
+                .map(Class::getPackage)
+                .map(Package::getName)
+                .collect(Collectors.toSet())));
+        beanConfig.setScan(true);
+
         final ResourceHandler swaggerUIResourceHandler = new ResourceHandler();
         swaggerUIResourceHandler.setResourceBase(getClass().getClassLoader().getResource(builder.swaggerUIDirectory).toURI().toString());
         final ContextHandler swaggerUIContext = new ContextHandler();
@@ -165,8 +167,9 @@ public class StackServer {
     public static final class Builder {
 
         private final List<String> apiPackageNames;
-        private final List<Class<? extends AppPlugin>> frontModules;
-        private final List<Class<? extends StackPlugin>> backModules;
+        private final List<Module> appModules;
+        private final List<Class<? extends AppPlugin>> appPlugins;
+        private final List<Class<? extends StackPlugin>> stackPlugins;
 
         private String title = "stack";
         private String version = "0.0.1";
@@ -184,8 +187,9 @@ public class StackServer {
 
         public Builder() {
             this.apiPackageNames = new LinkedList<>();
-            this.frontModules = new LinkedList<>();
-            this.backModules = new LinkedList<>();
+            this.appModules = new LinkedList<>();
+            this.appPlugins = new LinkedList<>();
+            this.stackPlugins = new LinkedList<>();
         }
 
         // Servlet Configurations
@@ -214,19 +218,33 @@ public class StackServer {
             return this;
         }
 
-        // Front-end Modules
-        //
-        //
-        public Builder withAppPlugin(final Class<? extends AppPlugin> frontModule) {
-            this.frontModules.add(frontModule);
+        /**
+         *
+         * @param appModule
+         * @return
+         */
+        public Builder withAppModule(final Module appModule) {
+            this.appModules.add(appModule);
             return this;
         }
 
-        // Back-end Modules
-        //
-        //
-        public Builder withStackPlugin(final Class<? extends StackPlugin> backModule) {
-            this.backModules.add(backModule);
+        /**
+         *
+         * @param appPlugin
+         * @return
+         */
+        public Builder withAppPlugin(final Class<? extends AppPlugin> appPlugin) {
+            this.appPlugins.add(appPlugin);
+            return this;
+        }
+
+        /**
+         *
+         * @param stackPlugin
+         * @return
+         */
+        public Builder withStackPlugin(final Class<? extends StackPlugin> stackPlugin) {
+            this.stackPlugins.add(stackPlugin);
             return this;
         }
 

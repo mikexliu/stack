@@ -7,6 +7,8 @@ import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 import io.github.mikexliu.stack.guice.modules.swagger.handler.exception.ThrowableResponseHandler;
 import io.github.mikexliu.stack.guice.modules.swagger.handler.exception.ThrowableResponseMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -20,6 +22,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class StackServletModule extends ServletModule {
+
+    private static final Logger log = LoggerFactory.getLogger(StackServletModule.class);
 
     private final boolean corsEnabled;
     private final ThrowableResponseHandler throwableResponseHandler;
@@ -36,13 +40,13 @@ public class StackServletModule extends ServletModule {
         final Map<String, String> parameters = new HashMap<>();
         parameters.put(PackagesResourceConfig.PROPERTY_PACKAGES,
                 ThrowableResponseMapper.class.getPackage().getName());
-        parameters.put(JSONConfiguration.FEATURE_POJO_MAPPING, "true");
+        parameters.put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE.toString());
         serve("/*").with(GuiceContainer.class, parameters);
         filter("/*").through(new Filter() {
 
             @Override
             public void init(final FilterConfig filterConfig) throws ServletException {
-
+                log.info("Filter: " + filterConfig.getInitParameterNames());
             }
 
             @Override

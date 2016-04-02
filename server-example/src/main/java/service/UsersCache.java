@@ -1,8 +1,8 @@
 package service;
 
+import com.google.common.collect.ImmutableMap;
 import io.github.mikexliu.collect.User;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +24,7 @@ public class UsersCache {
         return users.get(id);
     }
 
-    public Collection<User> getAllUsers() {
-        return users.values();
+    public Map<String, User> getAllUsers() {
+        return ImmutableMap.copyOf(users);
     }
 }

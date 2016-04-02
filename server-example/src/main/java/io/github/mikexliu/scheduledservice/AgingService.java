@@ -30,7 +30,7 @@ public class AgingService extends AbstractScheduledService {
     @Override
     public void run() {
         try {
-            usersCache.getAllUsers().forEach(User::growUp);
+            usersCache.getAllUsers().values().forEach(User::growUp);
         } catch (Exception e) {
             log.warn(getClass() + " failed", e);
         }

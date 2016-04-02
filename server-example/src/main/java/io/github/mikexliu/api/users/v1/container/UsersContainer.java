@@ -5,6 +5,8 @@ import io.github.mikexliu.api.users.v1.resource.UsersResource;
 import io.github.mikexliu.collect.User;
 import service.UsersCache;
 
+import java.util.Map;
+
 public class UsersContainer extends UsersResource {
 
     private final UsersCache usersCache;
@@ -22,5 +24,10 @@ public class UsersContainer extends UsersResource {
     @Override
     public User get(String id) {
         return usersCache.getUser(id);
+    }
+
+    @Override
+    public Map<String, User> all() {
+        return usersCache.getAllUsers();
     }
 }
