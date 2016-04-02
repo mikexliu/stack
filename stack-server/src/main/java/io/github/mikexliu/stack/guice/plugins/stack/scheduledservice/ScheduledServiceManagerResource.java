@@ -18,15 +18,15 @@ import java.util.Map;
 
 @Api(value = "Scheduled Services manager api", description = "Complete control Scheduled Services")
 @Path("/api/stack/scheduled-services/v1")
-public final class ServiceManagerResource {
+public final class ScheduledServiceManagerResource {
 
-    private static final Logger log = LoggerFactory.getLogger(ServiceManagerResource.class);
+    private static final Logger log = LoggerFactory.getLogger(ScheduledServiceManagerResource.class);
 
-    private final ServicesManager servicesManager;
+    private final ScheduledServiceManager scheduledServiceManager;
 
     @Inject
-    public ServiceManagerResource(final ServicesManager servicesManager) {
-        this.servicesManager = servicesManager;
+    public ScheduledServiceManagerResource(final ScheduledServiceManager scheduledServiceManager) {
+        this.scheduledServiceManager = scheduledServiceManager;
     }
 
     @ApiOperation(value = "get-services",
@@ -35,7 +35,7 @@ public final class ServiceManagerResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/get-services")
     public Map<String, Service.State> getServices() {
-        return servicesManager.getServices();
+        return scheduledServiceManager.getServices();
     }
 
     @POST
@@ -44,7 +44,7 @@ public final class ServiceManagerResource {
             @ApiParam(value = "service", required = true)
             @QueryParam(value = "service")
             final String service) {
-        servicesManager.runOnce(service);
+        scheduledServiceManager.runOnce(service);
     }
 
     @POST
@@ -53,7 +53,7 @@ public final class ServiceManagerResource {
             @ApiParam(value = "service", required = true)
             @QueryParam(value = "service")
             final String service) {
-        servicesManager.start(service);
+        scheduledServiceManager.start(service);
     }
 
 
@@ -63,6 +63,6 @@ public final class ServiceManagerResource {
             @ApiParam(value = "service", required = true)
             @QueryParam(value = "service")
             final String service) {
-        servicesManager.stop(service);
+        scheduledServiceManager.stop(service);
     }
 }

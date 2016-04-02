@@ -8,13 +8,13 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ServicesManager {
+public class ScheduledServiceManager {
 
-    private static final Logger log = LoggerFactory.getLogger(ServicesManager.class);
+    private static final Logger log = LoggerFactory.getLogger(ScheduledServiceManager.class);
 
     private final Map<String, AbstractScheduledService> services;
 
-    public ServicesManager() {
+    public ScheduledServiceManager() {
         services = new HashMap<>();
     }
 
@@ -31,7 +31,6 @@ public class ServicesManager {
         if (services.containsKey(name)) {
             final AbstractScheduledService service = services.get(name);
             if (service instanceof Runnable) {
-                log.info("Running " + name + " once");
                 ((Runnable) service).run();
             }
         }
@@ -41,7 +40,6 @@ public class ServicesManager {
         if (services.containsKey(name)) {
             final AbstractScheduledService service = services.get(name);
             if (!service.isRunning()) {
-                log.info("Starting " + name);
                 services.get(name).startAsync();
             }
         }
@@ -51,7 +49,6 @@ public class ServicesManager {
         if (services.containsKey(name)) {
             final AbstractScheduledService service = services.get(name);
             if (service.isRunning()) {
-                log.info("Stopping " + name);
                 services.get(name).stopAsync();
             }
         }
@@ -66,14 +63,10 @@ public class ServicesManager {
     }
 
     public void startAll() {
-        log.info("Starting services");
-        getServices().keySet().forEach(scheduledService -> start(scheduledService));
-        log.info("All services started");
+        getServices().keySet().forEach(this::start);
     }
 
     public void stopAll() {
-        log.info("Stopping services");
-        getServices().keySet().forEach(scheduledService -> stop(scheduledService));
-        log.info("All services stopped");
+        getServices().keySet().forEach(this::stop);
     }
 }

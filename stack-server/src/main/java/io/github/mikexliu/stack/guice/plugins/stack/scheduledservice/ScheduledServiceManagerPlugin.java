@@ -17,29 +17,29 @@ import java.util.Map;
  * Binds ServiceResource into swagger.
  * Finds all AbstractScheduledServices and starts them.
  */
-public class ServicesManagerModule extends StackPlugin {
+public class ScheduledServiceManagerPlugin extends StackPlugin {
 
-    private final ServicesManager servicesManager;
+    private final ScheduledServiceManager scheduledServiceManager;
 
-    public ServicesManagerModule(final Injector injector) {
-        servicesManager = createServicesManager(injector);
+    public ScheduledServiceManagerPlugin(final Injector injector) {
+        scheduledServiceManager = createServicesManager(injector);
 
-        addShutdownHook(servicesManager);
+        //addShutdownHook(scheduledServiceManager);
     }
 
     @Override
     protected void configure() {
-        bind(ServiceManagerResource.class).in(Scopes.SINGLETON);
+        bind(ScheduledServiceManagerResource.class).in(Scopes.SINGLETON);
     }
 
     @Singleton
     @Provides
-    public ServicesManager servicesManagerProvider() {
-        return servicesManager;
+    public ScheduledServiceManager servicesManagerProvider() {
+        return scheduledServiceManager;
     }
 
-    private static ServicesManager createServicesManager(final Injector injector) {
-        final ServicesManager servicesManager = new ServicesManager();
+    private static ScheduledServiceManager createServicesManager(final Injector injector) {
+        final ScheduledServiceManager scheduledServiceManager = new ScheduledServiceManager();
         final List<AbstractScheduledService> scheduledServices = new LinkedList<>();
         final Map<Key<?>, Binding<?>> allBindings = injector.getAllBindings();
         for (final Map.Entry<Key<?>, Binding<?>> entry : allBindings.entrySet()) {
@@ -50,16 +50,16 @@ public class ServicesManagerModule extends StackPlugin {
                 scheduledServices.add(AbstractScheduledService.class.cast(entry.getValue().getProvider().get()));
             }
         }
-        scheduledServices.forEach(servicesManager::addService);
-        return servicesManager;
+        scheduledServices.forEach(scheduledServiceManager::addService);
+        return scheduledServiceManager;
     }
 
-    private static void addShutdownHook(final ServicesManager servicesManager) {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                servicesManager.stopAll();
-            }
-        });
-    }
+//    private static void addShutdownHook(final ScheduledServiceManager scheduledServiceManager) {
+//        Runtime.getRuntime().addShutdownHook(new Thread() {
+//            @Override
+//            public void run() {
+//                scheduledServiceManager.stopAll();
+//            }
+//        });
+//    }
 }
