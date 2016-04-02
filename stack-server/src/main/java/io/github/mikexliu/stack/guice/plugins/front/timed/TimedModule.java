@@ -1,14 +1,12 @@
-package io.github.mikexliu.stack.guice.modules.aop;
+package io.github.mikexliu.stack.guice.plugins.front.timed;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.matcher.Matchers;
-import io.github.mikexliu.stack.guice.aop.timed.Timed;
-import io.github.mikexliu.stack.guice.aop.timed.TimedInterceptor;
 
 /**
  * Created by mliu on 3/27/16.
  */
-public class AnnotationModules extends AbstractModule {
+public class TimedModule extends AbstractModule {
 
     @Override
     protected void configure() {

@@ -2,6 +2,7 @@ package io.github.mikexliu.api.container;
 
 import com.google.inject.Inject;
 import io.github.mikexliu.api.resource.UsersResource;
+import io.github.mikexliu.collect.User;
 import service.UsersCache;
 
 public class UsersContainer extends UsersResource {
@@ -14,12 +15,12 @@ public class UsersContainer extends UsersResource {
     }
 
     @Override
-    public String post(String user) {
-        return "Post";
+    public String post(final User user) {
+        return usersCache.addUser(user);
     }
 
     @Override
-    public String get(String id) {
-        return id;
+    public User get(String id) {
+        return usersCache.getUser(id);
     }
 }

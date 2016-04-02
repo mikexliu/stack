@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.resources.scheduledservice;
+package io.github.mikexliu.stack.guice.plugins.back.scheduledservice;
 
 import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.common.util.concurrent.Service;
@@ -62,31 +62,15 @@ public class ServicesManager {
         return states;
     }
 
-    public <T extends AbstractScheduledService> T getService(final Class<T> serviceClass) {
-        return serviceClass.cast(services.get(serviceClass.getSimpleName()));
-    }
-
     public void startAll() {
-        try {
-            log.info("Starting services");
-            getServices().keySet().forEach(scheduledService -> {
-                start(scheduledService);
-            });
-            log.info("All services started");
-        } catch (Exception e) {
-            log.warn("Failed to find " + ServicesManager.class + "; not started");
-        }
+        log.info("Starting services");
+        getServices().keySet().forEach(scheduledService -> start(scheduledService));
+        log.info("All services started");
     }
 
     public void stopAll() {
-        try {
-            log.info("Stopping services");
-            getServices().keySet().forEach(scheduledService -> {
-                stop(scheduledService);
-            });
-            log.info("All services stopped");
-        } catch (Exception e) {
-            log.warn("Failed to find " + ServicesManager.class + "; not stopped", e);
-        }
+        log.info("Stopping services");
+        getServices().keySet().forEach(scheduledService -> stop(scheduledService));
+        log.info("All services stopped");
     }
 }

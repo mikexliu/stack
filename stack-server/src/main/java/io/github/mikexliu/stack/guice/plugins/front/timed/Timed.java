@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.aop.paginate;
+package io.github.mikexliu.stack.guice.plugins.front.timed;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,6 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Paginate {
-    int maxNumberResults() default 25;
+public @interface Timed {
+    String key() default "";
 }

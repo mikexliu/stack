@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.aop.timed;
+package io.github.mikexliu.stack.guice.plugins.front.timed;
 
 import com.google.common.base.Stopwatch;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -10,18 +10,19 @@ import java.util.concurrent.TimeUnit;
 
 public class TimedInterceptor implements MethodInterceptor {
 
+    final Logger log = LoggerFactory.getLogger(Timed.class);
+
     @Override
     public Object invoke(final MethodInvocation invocation) throws Throwable {
         final Class<?> callingClass = getClass(invocation.getThis().getClass());
         final String methodName = invocation.getMethod().getName();
-        final Logger log = LoggerFactory.getLogger(callingClass);
 
         final Stopwatch stopWatch = Stopwatch.createStarted();
         try {
             log.info(String.format("%s.%s started", callingClass, methodName));
             return invocation.proceed();
         } finally {
-            log.info(String.format("%s.%s finished; took %s seconds", callingClass, methodName, stopWatch.elapsed(TimeUnit.SECONDS)));
+            log.info(String.format("%s.%s finished; took %sms", callingClass, methodName, stopWatch.elapsed(TimeUnit.MILLISECONDS)));
         }
     }
 

@@ -9,12 +9,12 @@ import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.servlet.GuiceFilter;
 import com.google.inject.servlet.GuiceServletContextListener;
-import io.github.mikexliu.stack.guice.modules.aop.AnnotationModules;
+import io.github.mikexliu.stack.guice.plugins.front.timed.TimedModule;
 import io.github.mikexliu.stack.guice.modules.SwaggerServletModule;
 import io.github.mikexliu.stack.guice.modules.apis.ContainersModule;
 import io.github.mikexliu.stack.guice.modules.apis.ResourcesModule;
-import io.github.mikexliu.stack.guice.resources.scheduledservice.ServicesManager;
-import io.github.mikexliu.stack.guice.resources.scheduledservice.ServicesManagerModule;
+import io.github.mikexliu.stack.guice.plugins.back.scheduledservice.ServicesManager;
+import io.github.mikexliu.stack.guice.plugins.back.scheduledservice.ServicesManagerModule;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
 import org.eclipse.jetty.server.Server;
@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.DispatcherType;
 import javax.ws.rs.Path;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.LinkedList;
@@ -63,7 +64,7 @@ public class StackServer {
     private static final String SWAGGER_FILTER = "api";
 
     public static final class Builder {
-        private final List<String> packageNames;
+        private final List<String> apiPackageNames;
         private final List<Module> modules;
 
         private String title = "stack";
@@ -75,7 +76,7 @@ public class StackServer {
         private int port = 5555;
 
         public Builder() {
-            this.packageNames = new LinkedList<>();
+            this.apiPackageNames = new LinkedList<>();
             this.modules = new LinkedList<>();
         }
 
@@ -105,12 +106,12 @@ public class StackServer {
         }
 
         public Builder withPackageNames(final Collection<String> packageNames) {
-            this.packageNames.addAll(packageNames);
+            this.apiPackageNames.addAll(packageNames);
             return this;
         }
 
-        public Builder withPackageName(final String packageName) {
-            this.packageNames.add(packageName);
+        public Builder withApiPackageName(final String packageName) {
+            this.apiPackageNames.add(packageName);
             return this;
         }
 
@@ -119,14 +120,20 @@ public class StackServer {
             return this;
         }
 
+        public Builder withModules(final Module... modules) {
+            this.modules.addAll(Arrays.asList(modules));
+            return this;
+        }
+
         public Builder withModule(final Module module) {
             this.modules.add(module);
             return this;
         }
 
-        public StackServer build() {
-            Preconditions.checkArgument(!packageNames.isEmpty(), "No package name specified; cannot find classes.");
-            return new StackServer(this);
+        public void start() throws Exception {
+            Preconditions.checkArgument(!apiPackageNames.isEmpty(), "No api package name specified; cannot find api classes.");
+            Preconditions.checkArgument(!modules.isEmpty(), "No modules specified; cannot instantiate server.");
+            new StackServer(this).start();
         }
     }
 
@@ -142,14 +149,14 @@ public class StackServer {
 
         // stack modules
         final List<Module> modules = builder.modules;
-        modules.add(new AnnotationModules());
-        modules.add(new ContainersModule(builder.packageNames));
+        modules.add(new TimedModule());
+        modules.add(new ContainersModule(builder.apiPackageNames));
         final Injector stackInjector = Guice.createInjector(builder.modules);
 
         // meta modules
         final Collection<Module> metaModules = new LinkedList<>();
         metaModules.add(new ServicesManagerModule(stackInjector));
-        metaModules.add(new ResourcesModule(builder.packageNames, stackInjector));
+        metaModules.add(new ResourcesModule(builder.apiPackageNames, stackInjector));
         this.injector = stackInjector.createChildInjector(metaModules);
 
         this.server = new Server(builder.port);
