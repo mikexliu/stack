@@ -1,8 +1,8 @@
 package io.github.mikexliu.guice.modules;
 
-import io.github.mikexliu.stack.guice.plugins.front.FrontModule;
+import io.github.mikexliu.stack.guice.plugins.app.AppPlugin;
 
-public class ServerExampleModule extends FrontModule {
+public class ServerExampleModule extends AppPlugin {
 
     @Override
     protected void configure() {

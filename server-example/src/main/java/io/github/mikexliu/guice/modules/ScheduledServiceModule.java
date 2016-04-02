@@ -2,9 +2,9 @@ package io.github.mikexliu.guice.modules;
 
 import com.google.inject.Scopes;
 import io.github.mikexliu.scheduledservice.AgingService;
-import io.github.mikexliu.stack.guice.plugins.front.FrontModule;
+import io.github.mikexliu.stack.guice.plugins.app.AppPlugin;
 
-public class ScheduledServiceModule extends FrontModule {
+public class ScheduledServiceModule extends AppPlugin {
 
     @Override
     protected void configure() {

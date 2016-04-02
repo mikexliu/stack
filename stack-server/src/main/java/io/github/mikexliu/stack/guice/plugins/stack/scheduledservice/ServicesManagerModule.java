@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.plugins.back.scheduledservice;
+package io.github.mikexliu.stack.guice.plugins.stack.scheduledservice;
 
 import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.inject.Binding;
@@ -7,7 +7,7 @@ import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
-import io.github.mikexliu.stack.guice.plugins.back.BackModule;
+import io.github.mikexliu.stack.guice.plugins.stack.StackPlugin;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.Map;
  * Binds ServiceResource into swagger.
  * Finds all AbstractScheduledServices and starts them.
  */
-public class ServicesManagerModule extends BackModule {
+public class ServicesManagerModule extends StackPlugin {
 
     private final ServicesManager servicesManager;
 

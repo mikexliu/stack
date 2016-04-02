@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.plugins.front.timed;
+package io.github.mikexliu.stack.guice.plugins.app.timed;
 
 import com.google.common.base.Stopwatch;
 import org.aopalliance.intercept.MethodInterceptor;

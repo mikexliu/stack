@@ -12,9 +12,9 @@ import io.github.mikexliu.stack.guice.modules.apis.ContainersModule;
 import io.github.mikexliu.stack.guice.modules.apis.ResourcesModule;
 import io.github.mikexliu.stack.guice.modules.swagger.StackServletModule;
 import io.github.mikexliu.stack.guice.modules.swagger.handler.exception.ThrowableResponseHandler;
-import io.github.mikexliu.stack.guice.plugins.back.BackModule;
-import io.github.mikexliu.stack.guice.plugins.back.scheduledservice.ServicesManager;
-import io.github.mikexliu.stack.guice.plugins.front.FrontModule;
+import io.github.mikexliu.stack.guice.plugins.stack.StackPlugin;
+import io.github.mikexliu.stack.guice.plugins.stack.scheduledservice.ServicesManager;
+import io.github.mikexliu.stack.guice.plugins.app.AppPlugin;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
 import org.eclipse.jetty.server.Server;
@@ -61,8 +61,8 @@ public class StackServer {
     public static final class Builder {
 
         private final List<String> apiPackageNames;
-        private final List<Class<? extends FrontModule>> frontModules;
-        private final List<Class<? extends BackModule>> backModules;
+        private final List<Class<? extends AppPlugin>> frontModules;
+        private final List<Class<? extends StackPlugin>> backModules;
 
         private String title = "stack";
         private String version = "0.0.1";
@@ -113,7 +113,7 @@ public class StackServer {
         // Front-end Modules
         //
         //
-        public Builder withFrontModule(final Class<? extends FrontModule> frontModule) {
+        public Builder withAppPlugin(final Class<? extends AppPlugin> frontModule) {
             this.frontModules.add(frontModule);
             return this;
         }
@@ -121,7 +121,7 @@ public class StackServer {
         // Back-end Modules
         //
         //
-        public Builder withBackModule(final Class<? extends BackModule> backModule) {
+        public Builder withStackPlugin(final Class<? extends StackPlugin> backModule) {
             this.backModules.add(backModule);
             return this;
         }
@@ -176,21 +176,21 @@ public class StackServer {
         this.builder = builder;
 
         // stack modules
-        final List<FrontModule> frontModules = new LinkedList<>();
-        for (final Class<? extends FrontModule> frontModuleClass : this.builder.frontModules) {
-            frontModules.add(frontModuleClass.newInstance());
+        final List<AppPlugin> appPlugins = new LinkedList<>();
+        for (final Class<? extends AppPlugin> frontModuleClass : this.builder.frontModules) {
+            appPlugins.add(frontModuleClass.newInstance());
         }
 
-        frontModules.add(new ContainersModule(builder.apiPackageNames));
-        final Injector frontInjector = Guice.createInjector(frontModules);
+        appPlugins.add(new ContainersModule(builder.apiPackageNames));
+        final Injector frontInjector = Guice.createInjector(appPlugins);
 
         // meta modules
-        final Collection<BackModule> backModules = new LinkedList<>();
-        for (final Class<? extends BackModule> backModuleClass : this.builder.backModules) {
-            backModules.add(backModuleClass.getConstructor(Injector.class).newInstance(frontInjector));
+        final Collection<StackPlugin> stackPlugins = new LinkedList<>();
+        for (final Class<? extends StackPlugin> backModuleClass : this.builder.backModules) {
+            stackPlugins.add(backModuleClass.getConstructor(Injector.class).newInstance(frontInjector));
         }
-        backModules.add(new ResourcesModule(builder.apiPackageNames, frontInjector));
-        this.backInjector = frontInjector.createChildInjector(backModules);
+        stackPlugins.add(new ResourcesModule(builder.apiPackageNames, frontInjector));
+        this.backInjector = frontInjector.createChildInjector(stackPlugins);
 
         this.server = new Server(builder.port);
     }

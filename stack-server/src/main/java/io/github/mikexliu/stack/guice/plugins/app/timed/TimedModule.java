@@ -1,9 +1,9 @@
-package io.github.mikexliu.stack.guice.plugins.front.timed;
+package io.github.mikexliu.stack.guice.plugins.app.timed;
 
 import com.google.inject.matcher.Matchers;
-import io.github.mikexliu.stack.guice.plugins.front.FrontModule;
+import io.github.mikexliu.stack.guice.plugins.app.AppPlugin;
 
-public class TimedModule extends FrontModule {
+public class TimedModule extends AppPlugin {
 
     @Override
     protected void configure() {
