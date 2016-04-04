@@ -190,7 +190,7 @@ public class StackServer {
 
         private String title = "stack";
         private String version = "0.0.1";
-        private String description = "stack makes it easy to generate rest endpoints.";
+        private String description = "sample description";
 
         private int port = 5555;
         private boolean corsEnabled = false;
@@ -217,7 +217,7 @@ public class StackServer {
         }
 
         /**
-         * Default: false
+         * Default: disabled
          * @return
          */
         public Builder withCorsEnabled() {
@@ -296,6 +296,7 @@ public class StackServer {
 
         /**
          * Enables Swagger using the default swagger-ui resource
+         * Default: disabled
          *
          * @return
          */
@@ -318,31 +319,40 @@ public class StackServer {
         }
 
         /**
+         * Enables Swagger and sets the swagger-ui title
+         * Default: "stack"
          *
          * @param title
          * @return
          */
         public Builder withTitle(final String title) {
+            this.withSwaggerEnabled();
             this.title = title;
             return this;
         }
 
         /**
+         * Enables Swagger and sets the swagger-ui version
+         * Default: "0.0.1"
          *
          * @param version
          * @return
          */
         public Builder withVersion(final String version) {
+            this.withSwaggerEnabled();
             this.version = version;
             return this;
         }
 
         /**
+         * Enables Swagger and sets the swagger-ui description
+         * Default: "sample description"
          *
          * @param description
          * @return
          */
         public Builder withDescription(final String description) {
+            this.withSwaggerEnabled();
             this.description = description;
             return this;
         }
