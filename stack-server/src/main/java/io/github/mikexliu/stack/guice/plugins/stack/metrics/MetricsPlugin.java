@@ -13,5 +13,8 @@ public class MetricsPlugin extends StackPlugin {
     @Override
     protected void configure() {
         bind(MetricsManagerResource.class).in(Scopes.SINGLETON);
+
+        // TODO: how to allow app plugins to access this?
+        bind(MetricsManager.class).in(Scopes.SINGLETON);
     }
 }
