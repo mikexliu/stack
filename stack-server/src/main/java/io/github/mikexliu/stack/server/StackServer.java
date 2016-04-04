@@ -37,10 +37,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.EnumSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -67,22 +67,16 @@ public class StackServer {
         this.builder = builder;
 
         // stack modules
-        final Collection<Module> appPlugins = new LinkedList<>();
-        final Collection<StackPlugin> stackPlugins = new LinkedList<>();
+        final Set<Module> appPlugins = new HashSet<>();
+        final Set<StackPlugin> stackPlugins = new HashSet<>();
 
-        appPlugins.addAll(builder.appModules);
-        for (final Class<? extends AppPlugin> appPluginClass : this.builder.appPlugins) {
-            final AppPlugin appPlugin = appPluginClass.newInstance();
-            appPlugins.add(appPlugin);
-
-            this.builder.stackPlugins.addAll(appPlugin.getStackPluginDependencies());
-        }
-
-        appPlugins.add(new ContainersModule(builder.apiPackageNames));
+        appPlugins.add(new ContainersModule(this.builder.apiPackageNames));
+        appPlugins.addAll(this.builder.appModules);
+        appPlugins.addAll(this.builder.appPluginInstances.values());
         final Injector frontInjector = Guice.createInjector(appPlugins);
 
         // meta modules
-        for (final Class<? extends StackPlugin> stackPluginClass : this.builder.stackPlugins) {
+        for (final Class<? extends StackPlugin> stackPluginClass : this.builder.stackPluginClasses) {
             stackPlugins.add(stackPluginClass.getConstructor(Injector.class).newInstance(frontInjector));
         }
         stackPlugins.add(new ResourcesModule(builder.apiPackageNames, frontInjector));
@@ -94,7 +88,7 @@ public class StackServer {
     public void start() throws Exception {
         final HandlerList handlers = new HandlerList();
 
-        if (builder.swaggerEnabled) {
+        if (this.builder.swaggerEnabled) {
             handlers.addHandler(buildSwaggerContext());
         }
 
@@ -189,10 +183,10 @@ public class StackServer {
 
     public static final class Builder {
 
-        private final List<String> apiPackageNames;
-        private final List<Module> appModules;
-        private final List<Class<? extends AppPlugin>> appPlugins;
-        private final List<Class<? extends StackPlugin>> stackPlugins;
+        private final Set<String> apiPackageNames;
+        private final Set<Module> appModules;
+        private final Set<Class<? extends AppPlugin>> appPluginClasses;
+        private final Set<Class<? extends StackPlugin>> stackPluginClasses;
 
         private String title = "stack";
         private String version = "0.0.1";
@@ -205,11 +199,15 @@ public class StackServer {
         private boolean swaggerEnabled = false;
         private String swaggerUIDirectory = "swagger-ui";
 
+        private final Map<Class<? extends AppPlugin>, AppPlugin> appPluginInstances;
+
         public Builder() {
-            this.apiPackageNames = new LinkedList<>();
-            this.appModules = new LinkedList<>();
-            this.appPlugins = new LinkedList<>();
-            this.stackPlugins = new LinkedList<>();
+            this.apiPackageNames = new HashSet<>();
+            this.appModules = new HashSet<>();
+            this.appPluginClasses = new HashSet<>();
+            this.stackPluginClasses = new HashSet<>();
+
+            this.appPluginInstances = new HashMap<>();
         }
 
         /**
@@ -269,7 +267,7 @@ public class StackServer {
          * @return
          */
         public Builder withAppPlugin(final Class<? extends AppPlugin> appPlugin) {
-            this.appPlugins.add(appPlugin);
+            this.appPluginClasses.add(appPlugin);
             return this;
         }
 
@@ -278,7 +276,7 @@ public class StackServer {
          * @return
          */
         public Builder withAppLugins(final Class<? extends AppPlugin>... appPlugins) {
-            this.appPlugins.addAll(Arrays.asList(appPlugins));
+            this.appPluginClasses.addAll(Arrays.asList(appPlugins));
             return this;
         }
 
@@ -287,7 +285,7 @@ public class StackServer {
          * @return
          */
         public Builder withStackPlugin(final Class<? extends StackPlugin> stackPlugin) {
-            this.stackPlugins.add(stackPlugin);
+            this.stackPluginClasses.add(stackPlugin);
             return this;
         }
 
@@ -296,7 +294,7 @@ public class StackServer {
          * @return
          */
         public Builder withStackPlugins(final Class<? extends StackPlugin>... stackPlugins) {
-            this.stackPlugins.addAll(Arrays.asList(stackPlugins));
+            this.stackPluginClasses.addAll(Arrays.asList(stackPlugins));
             return this;
         }
 
@@ -371,30 +369,50 @@ public class StackServer {
         public StackServer build() throws Exception {
             Preconditions.checkArgument(!apiPackageNames.isEmpty(), "No api package name specified; cannot find api classes.");
 
-            appPlugins.forEach(appPlugin -> {
-                try {
-                    // TODO: verify AppPlugin constructor
-                    appPlugin.newInstance().getStackPluginDependencies().forEach(stackPlugin -> verifyStackPluginClass(stackPlugin));
-                } catch (InstantiationException | IllegalAccessException e) {
-                    Preconditions.checkState(false, appPlugin + " could not be instantiated.");
-                }
-            });
-
-            stackPlugins.forEach(stackPlugin -> verifyStackPluginClass(stackPlugin));
+            appPluginClasses.forEach(appPluginClass -> gatherAppPluginDependency(appPluginClass));
+            stackPluginClasses.forEach(stackPluginClass -> verifyStackPluginClass(stackPluginClass));
 
             return new StackServer(this);
         }
 
-        private void verifyStackPluginClass(final Class<? extends StackPlugin> stackPlugin) {
+        private void gatherAppPluginDependency(final Class<? extends AppPlugin> appPluginClass) {
+            verifyAppPluginClass(appPluginClass);
             try {
-                Preconditions.checkState(!Modifier.isAbstract(stackPlugin.getModifiers()), String.format("%s is abstract.", stackPlugin));
-                Preconditions.checkState(Modifier.isPublic(stackPlugin.getModifiers()), String.format("%s is not public.", stackPlugin));
-                final Constructor<? extends StackPlugin> constructor = stackPlugin.getConstructor(Injector.class);
+                if (!appPluginInstances.containsKey(appPluginClass)) {
+                    final AppPlugin appPlugin = appPluginClass.newInstance();
+                    appPluginInstances.put(appPluginClass, appPlugin);
+                    stackPluginClasses.addAll(appPlugin.getStackPluginDependencies());
+
+                    appPlugin.getAppPluginDependencies().forEach(appPluginDependencyClass -> gatherAppPluginDependency(appPluginDependencyClass));
+                }
+            } catch (InstantiationException | IllegalAccessException e) {
+                Preconditions.checkState(false, appPluginClass + " could not be instantiated.");
+            }
+        }
+
+        private void verifyAppPluginClass(final Class<? extends AppPlugin> appPluginClass) {
+            try {
+                Preconditions.checkState(!Modifier.isAbstract(appPluginClass.getModifiers()), String.format("%s is abstract.", appPluginClass));
+                Preconditions.checkState(Modifier.isPublic(appPluginClass.getModifiers()), String.format("%s is not public.", appPluginClass));
+                final Constructor<? extends AppPlugin> constructor = appPluginClass.getConstructor();
                 Preconditions.checkState(Modifier.isPublic(constructor.getModifiers()),
-                        String.format("Constructor %s(Injector injector) is not public.", stackPlugin.getSimpleName()));
+                        String.format("Default constructor for %s is not public.", appPluginClass.getName()));
+            } catch (NoSuchMethodException e) {
+                Preconditions.checkState(false, String.format("Default constructor for %s does not exist.",
+                        appPluginClass.getName()));
+            }
+        }
+
+        private void verifyStackPluginClass(final Class<? extends StackPlugin> stackPluginClass) {
+            try {
+                Preconditions.checkState(!Modifier.isAbstract(stackPluginClass.getModifiers()), String.format("%s is abstract.", stackPluginClass));
+                Preconditions.checkState(Modifier.isPublic(stackPluginClass.getModifiers()), String.format("%s is not public.", stackPluginClass));
+                final Constructor<? extends StackPlugin> constructor = stackPluginClass.getConstructor(Injector.class);
+                Preconditions.checkState(Modifier.isPublic(constructor.getModifiers()),
+                        String.format("Constructor %s(Injector injector) is not public.", stackPluginClass.getName()));
             } catch (NoSuchMethodException e) {
                 Preconditions.checkState(false, String.format("Constructor %s(Injector injector) does not exist.",
-                        stackPlugin.getSimpleName()));
+                        stackPluginClass.getName()));
             }
         }
     }
