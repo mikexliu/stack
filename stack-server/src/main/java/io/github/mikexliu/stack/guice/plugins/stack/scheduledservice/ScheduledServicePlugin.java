@@ -16,9 +16,9 @@ import java.util.Map;
 /**
  * Provides a REST interface into managing ScheduledServices.
  */
-public final class ScheduledServiceManagerPlugin extends StackPlugin {
+public final class ScheduledServicePlugin extends StackPlugin {
 
-    public ScheduledServiceManagerPlugin(final Injector injector) {
+    public ScheduledServicePlugin(final Injector injector) {
         super(injector);
     }
 

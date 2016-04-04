@@ -33,6 +33,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.servlet.DispatcherType;
 import javax.ws.rs.Path;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -54,7 +56,7 @@ public class StackServer {
     private static final String JERSEY_CONTEXT_PATH = "api";
 
     private final Server server;
-    private final Injector backInjector;
+    private final Injector stackInjector;
 
     private final Builder builder;
 
@@ -65,22 +67,26 @@ public class StackServer {
         this.builder = builder;
 
         // stack modules
-        final List<Module> appPlugins = new LinkedList<>();
+        final Collection<Module> appPlugins = new LinkedList<>();
+        final Collection<StackPlugin> stackPlugins = new LinkedList<>();
+
         appPlugins.addAll(builder.appModules);
-        for (final Class<? extends AppPlugin> frontModuleClass : this.builder.appPlugins) {
-            appPlugins.add(frontModuleClass.newInstance());
+        for (final Class<? extends AppPlugin> appPluginClass : this.builder.appPlugins) {
+            final AppPlugin appPlugin = appPluginClass.newInstance();
+            appPlugins.add(appPlugin);
+
+            this.builder.stackPlugins.addAll(appPlugin.getStackPluginDependencies());
         }
 
         appPlugins.add(new ContainersModule(builder.apiPackageNames));
         final Injector frontInjector = Guice.createInjector(appPlugins);
 
         // meta modules
-        final Collection<StackPlugin> stackPlugins = new LinkedList<>();
-        for (final Class<? extends StackPlugin> backModuleClass : this.builder.stackPlugins) {
-            stackPlugins.add(backModuleClass.getConstructor(Injector.class).newInstance(frontInjector));
+        for (final Class<? extends StackPlugin> stackPluginClass : this.builder.stackPlugins) {
+            stackPlugins.add(stackPluginClass.getConstructor(Injector.class).newInstance(frontInjector));
         }
         stackPlugins.add(new ResourcesModule(builder.apiPackageNames, frontInjector));
-        this.backInjector = frontInjector.createChildInjector(stackPlugins);
+        this.stackInjector = frontInjector.createChildInjector(stackPlugins);
 
         this.server = new Server(builder.port);
     }
@@ -118,7 +124,7 @@ public class StackServer {
     }
 
     private Set<Class<?>> getResources() {
-        final Set<Key<?>> keys = backInjector.getAllBindings().keySet();
+        final Set<Key<?>> keys = stackInjector.getAllBindings().keySet();
         final Set<Class<?>> resources = Sets.newHashSet();
         for (final Key<?> key : keys) {
             final Class<?> classType = key.getTypeLiteral().getRawType();
@@ -142,7 +148,7 @@ public class StackServer {
         servletContextHandler.addServlet(servletHolder, "/*");
         servletContextHandler.addServlet(DefaultServlet.class, "/");
 
-        final Injector servletInjector = backInjector.createChildInjector(new StackServletModule(builder.corsEnabled, builder.throwableResponseHandler));
+        final Injector servletInjector = stackInjector.createChildInjector(new StackServletModule(builder.corsEnabled, builder.throwableResponseHandler));
 
         final FilterHolder guiceFilter = new FilterHolder(servletInjector.getInstance(GuiceFilter.class));
         servletContextHandler.addFilter(guiceFilter, String.format("/%s/*", JERSEY_CONTEXT_PATH), EnumSet.allOf(DispatcherType.class));
@@ -364,16 +370,32 @@ public class StackServer {
          */
         public StackServer build() throws Exception {
             Preconditions.checkArgument(!apiPackageNames.isEmpty(), "No api package name specified; cannot find api classes.");
-            stackPlugins.forEach(stackPlugin -> {
+
+            appPlugins.forEach(appPlugin -> {
                 try {
-                    stackPlugin.getConstructor(Injector.class);
-                } catch (NoSuchMethodException e) {
-                    Preconditions.checkState(false, String.format("Constructor public %s(Injector injector) does not exist.",
-                            stackPlugin.getSimpleName()));
+                    // TODO: verify AppPlugin constructor
+                    appPlugin.newInstance().getStackPluginDependencies().forEach(stackPlugin -> verifyStackPluginClass(stackPlugin));
+                } catch (InstantiationException | IllegalAccessException e) {
+                    Preconditions.checkState(false, appPlugin + " could not be instantiated.");
                 }
             });
 
+            stackPlugins.forEach(stackPlugin -> verifyStackPluginClass(stackPlugin));
+
             return new StackServer(this);
+        }
+
+        private void verifyStackPluginClass(final Class<? extends StackPlugin> stackPlugin) {
+            try {
+                Preconditions.checkState(!Modifier.isAbstract(stackPlugin.getModifiers()), String.format("%s is abstract.", stackPlugin));
+                Preconditions.checkState(Modifier.isPublic(stackPlugin.getModifiers()), String.format("%s is not public.", stackPlugin));
+                final Constructor<? extends StackPlugin> constructor = stackPlugin.getConstructor(Injector.class);
+                Preconditions.checkState(Modifier.isPublic(constructor.getModifiers()),
+                        String.format("Constructor %s(Injector injector) is not public.", stackPlugin.getSimpleName()));
+            } catch (NoSuchMethodException e) {
+                Preconditions.checkState(false, String.format("Constructor %s(Injector injector) does not exist.",
+                        stackPlugin.getSimpleName()));
+            }
         }
     }
 }

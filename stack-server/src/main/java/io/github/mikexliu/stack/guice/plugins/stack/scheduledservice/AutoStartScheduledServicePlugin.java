@@ -14,11 +14,11 @@ import java.util.Map;
 /**
  * Auto starts and registers a shutdown hook to all SchceduledServices.
  */
-public final class ScheduledServiceAutoStartPlugin extends StackPlugin {
+public final class AutoStartScheduledServicePlugin extends StackPlugin {
 
-    private static final Logger log = LoggerFactory.getLogger(ScheduledServiceAutoStartPlugin.class);
+    private static final Logger log = LoggerFactory.getLogger(AutoStartScheduledServicePlugin.class);
 
-    public ScheduledServiceAutoStartPlugin(final Injector injector) {
+    public AutoStartScheduledServicePlugin(final Injector injector) {
         super(injector);
     }
 
