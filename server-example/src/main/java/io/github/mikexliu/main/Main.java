@@ -1,5 +1,6 @@
 package io.github.mikexliu.main;
 
+import com.google.common.base.Throwables;
 import io.github.mikexliu.guice.modules.ServerExampleModule;
 import io.github.mikexliu.stack.guice.plugins.stack.scheduledservice.ScheduledServiceAutoStartPlugin;
 import io.github.mikexliu.stack.guice.plugins.stack.scheduledservice.ScheduledServiceManagerPlugin;
@@ -17,6 +18,7 @@ public class Main {
                 .withVersion("0.0.1-SNAPSHOT")
                 .withApiPackageName("io.github.mikexliu.api")
                 .withSwaggerEnabled()
+                .withSwaggerUiDirectory("swagger-ui")
                 .withStackPlugin(ScheduledServiceManagerPlugin.class)
                 .withStackPlugin(ScheduledServiceAutoStartPlugin.class)
                 .withAppPlugin(TimedPlugin.class)
@@ -24,7 +26,7 @@ public class Main {
                 .withCorsEnabled()
                 .withExceptionHandler(throwable ->
                         Response.status(Response.Status.NOT_FOUND)
-                                .entity("Example Server Resource Not Found")
+                                .entity(Throwables.getStackTraceAsString(throwable))
                                 .build())
                 .withPort(5454)
                 .build()

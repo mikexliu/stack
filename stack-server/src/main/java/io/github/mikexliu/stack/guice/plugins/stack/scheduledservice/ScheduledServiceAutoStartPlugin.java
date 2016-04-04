@@ -18,10 +18,8 @@ public final class ScheduledServiceAutoStartPlugin extends StackPlugin {
 
     private static final Logger log = LoggerFactory.getLogger(ScheduledServiceAutoStartPlugin.class);
 
-    private final Injector injector;
-
     public ScheduledServiceAutoStartPlugin(final Injector injector) {
-        this.injector = injector;
+        super(injector);
     }
 
     @Override

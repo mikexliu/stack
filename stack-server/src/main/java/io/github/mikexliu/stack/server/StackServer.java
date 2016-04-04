@@ -262,9 +262,14 @@ public class StackServer {
             return this;
         }
 
+        /**
+         * Enables Swagger and sets the swagger-ui directory
+         * @param swaggerUIDirectory
+         * @return
+         */
         public Builder withSwaggerUiDirectory(final String swaggerUIDirectory) {
+            this.withSwaggerEnabled();
             this.swaggerUIDirectory = swaggerUIDirectory;
-            this.swaggerEnabled = true;
             return this;
         }
 
@@ -285,6 +290,15 @@ public class StackServer {
 
         public StackServer build() throws Exception {
             Preconditions.checkArgument(!apiPackageNames.isEmpty(), "No api package name specified; cannot find api classes.");
+            stackPlugins.forEach(stackPlugin -> {
+                try {
+                    stackPlugin.getConstructor(Injector.class);
+                } catch (NoSuchMethodException e) {
+                    Preconditions.checkState(false, String.format("Constructor public %s(Injector injector) does not exist.",
+                            stackPlugin.getSimpleName()));
+                }
+            });
+
             return new StackServer(this);
         }
 

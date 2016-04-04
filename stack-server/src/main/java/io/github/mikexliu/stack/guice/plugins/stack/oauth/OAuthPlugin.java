@@ -10,6 +10,7 @@ import io.github.mikexliu.stack.guice.plugins.stack.StackPlugin;
 public class OAuthPlugin extends StackPlugin {
 
     public OAuthPlugin(final Injector injector) {
+        super(injector);
     }
 
     @Override

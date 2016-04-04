@@ -18,10 +18,8 @@ import java.util.Map;
  */
 public final class ScheduledServiceManagerPlugin extends StackPlugin {
 
-    private final Injector injector;
-
     public ScheduledServiceManagerPlugin(final Injector injector) {
-        this.injector = injector;
+        super(injector);
     }
 
     @Override
