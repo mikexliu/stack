@@ -156,6 +156,7 @@ public class StackServer {
         return servletContextHandler;
     }
 
+    // TODO: add swagger-ui as maven dependency
     private ContextHandler buildSwaggerContext() throws URISyntaxException {
         final BeanConfig beanConfig = new BeanConfig();
         beanConfig.setVersion(this.builder.version);
