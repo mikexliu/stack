@@ -69,6 +69,8 @@ public class StackServletModule extends ServletModule {
             }
         });
 
-        bind(ThrowableResponseMapper.class).toInstance(new ThrowableResponseMapper(throwableResponseHandler));
+        if (throwableResponseHandler != null) {
+            bind(ThrowableResponseMapper.class).toInstance(new ThrowableResponseMapper(throwableResponseHandler));
+        }
     }
 }

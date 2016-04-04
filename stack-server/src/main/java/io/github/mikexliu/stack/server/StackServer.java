@@ -33,8 +33,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.servlet.DispatcherType;
 import javax.ws.rs.Path;
-import javax.ws.rs.core.Response;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.LinkedList;
@@ -95,6 +95,22 @@ public class StackServer {
         handlers.addHandler(buildJerseyContext());
         server.setHandler(handlers);
         server.start();
+
+        log.info(StackServer.class + " Started");
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                if (!server.isStopping() && !server.isStopped()) {
+                    try {
+                        server.stop();
+                    } catch (Exception e) {
+                        log.warn("Failed to stop " + StackServer.class, e);
+                    }
+                }
+
+                log.info(StackServer.class + " Stopped");
+            }
+        });
     }
 
     public void stop() throws Exception {
@@ -178,10 +194,7 @@ public class StackServer {
 
         private int port = 5555;
         private boolean corsEnabled = false;
-        private ThrowableResponseHandler throwableResponseHandler = throwable -> {
-            log.warn("Server encountered exception", throwable);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        };
+        private ThrowableResponseHandler throwableResponseHandler = null;
 
         private boolean swaggerEnabled = false;
         private String swaggerUIDirectory = "swagger-ui";
@@ -194,7 +207,7 @@ public class StackServer {
         }
 
         /**
-         *
+         * Default port: 5555
          * @param port
          * @return
          */
@@ -203,11 +216,22 @@ public class StackServer {
             return this;
         }
 
+        /**
+         * Default: false
+         * @return
+         */
         public Builder withCorsEnabled() {
             this.corsEnabled = true;
             return this;
         }
 
+        /**
+         * Defines how to handle Throwable while handling a request.
+         * No default implementation
+         *
+         * @param throwableResponseHandler
+         * @return
+         */
         public Builder withExceptionHandler(final ThrowableResponseHandler throwableResponseHandler) {
             this.throwableResponseHandler = throwableResponseHandler;
             return this;
@@ -215,6 +239,8 @@ public class StackServer {
 
         /**
          * Package name of @Api implementations
+         * No default implementation
+         *
          * @param packageName
          * @return
          */
@@ -224,7 +250,6 @@ public class StackServer {
         }
 
         /**
-         *
          * @param appModule
          * @return
          */
@@ -234,7 +259,6 @@ public class StackServer {
         }
 
         /**
-         *
          * @param appPlugin
          * @return
          */
@@ -244,7 +268,15 @@ public class StackServer {
         }
 
         /**
-         *
+         * @param appPlugins
+         * @return
+         */
+        public Builder withAppLugins(final Class<? extends AppPlugin>... appPlugins) {
+            this.appPlugins.addAll(Arrays.asList(appPlugins));
+            return this;
+        }
+
+        /**
          * @param stackPlugin
          * @return
          */
@@ -254,6 +286,16 @@ public class StackServer {
         }
 
         /**
+         * @param stackPlugins
+         * @return
+         */
+        public Builder withStackPlugins(final Class<? extends StackPlugin>... stackPlugins) {
+            this.stackPlugins.addAll(Arrays.asList(stackPlugins));
+            return this;
+        }
+
+        /**
+         * Enables Swagger using the default swagger-ui resource
          *
          * @return
          */
@@ -264,6 +306,8 @@ public class StackServer {
 
         /**
          * Enables Swagger and sets the swagger-ui directory
+         * Default: "swagger-ui"
+         *
          * @param swaggerUIDirectory
          * @return
          */
@@ -273,21 +317,41 @@ public class StackServer {
             return this;
         }
 
+        /**
+         *
+         * @param title
+         * @return
+         */
         public Builder withTitle(final String title) {
             this.title = title;
             return this;
         }
 
+        /**
+         *
+         * @param version
+         * @return
+         */
         public Builder withVersion(final String version) {
             this.version = version;
             return this;
         }
 
+        /**
+         *
+         * @param description
+         * @return
+         */
         public Builder withDescription(final String description) {
             this.description = description;
             return this;
         }
 
+        /**
+         *
+         * @return
+         * @throws Exception
+         */
         public StackServer build() throws Exception {
             Preconditions.checkArgument(!apiPackageNames.isEmpty(), "No api package name specified; cannot find api classes.");
             stackPlugins.forEach(stackPlugin -> {
@@ -300,10 +364,6 @@ public class StackServer {
             });
 
             return new StackServer(this);
-        }
-
-        public void start() throws Exception {
-            new StackServer(this).start();
         }
     }
 }

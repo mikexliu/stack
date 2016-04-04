@@ -44,7 +44,7 @@ public final class ScheduledServiceAutoStartPlugin extends StackPlugin {
 
     private static void startServices(final Injector injector) {
         getScheduledServices(injector).forEach(scheduledService -> {
-            log.info("Starting " + scheduledService);
+            log.info("Starting " + scheduledService.getClass());
             scheduledService.startAsync();
         });
     }
@@ -54,7 +54,7 @@ public final class ScheduledServiceAutoStartPlugin extends StackPlugin {
             @Override
             public void run() {
                 getScheduledServices(injector).forEach(scheduledService -> {
-                    log.info("Stopping " + scheduledService);
+                    log.info("Stopping " + scheduledService.getClass());
                     scheduledService.stopAsync();
                 });
             }

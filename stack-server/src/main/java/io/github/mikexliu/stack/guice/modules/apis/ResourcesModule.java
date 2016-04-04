@@ -29,12 +29,11 @@ public class ResourcesModule extends StackPlugin {
 
     private final Map<Method, Method> resourceToContainer;
     private final Collection<String> packageNames;
-    private final Injector injector;
 
     public ResourcesModule(final Collection<String> packageNames, final Injector injector) {
+        super(injector);
         this.resourceToContainer = new HashMap<>();
         this.packageNames = packageNames;
-        this.injector = injector;
     }
 
     protected void configure() {
