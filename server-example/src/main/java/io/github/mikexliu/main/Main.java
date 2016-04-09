@@ -1,10 +1,9 @@
 package io.github.mikexliu.main;
 
-import com.google.common.base.Throwables;
 import io.github.mikexliu.guice.modules.ServerExampleModule;
+import io.github.mikexliu.stack.guice.plugins.app.timed.TimedPlugin;
 import io.github.mikexliu.stack.guice.plugins.stack.scheduledservice.AutoStartScheduledServicePlugin;
 import io.github.mikexliu.stack.guice.plugins.stack.scheduledservice.ScheduledServicePlugin;
-import io.github.mikexliu.stack.guice.plugins.app.timed.TimedPlugin;
 import io.github.mikexliu.stack.server.StackServer;
 
 import javax.ws.rs.core.Response;
@@ -24,8 +23,8 @@ public class Main {
                 .withAppModule(new ServerExampleModule())
                 .withCorsEnabled()
                 .withExceptionHandler(throwable ->
-                        Response.status(Response.Status.NOT_FOUND)
-                                .entity(Throwables.getStackTraceAsString(throwable))
+                        Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                                .entity(throwable)
                                 .build())
                 .withPort(5454)
                 .build()

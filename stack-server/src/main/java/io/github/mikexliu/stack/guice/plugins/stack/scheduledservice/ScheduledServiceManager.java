@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Package Private class
@@ -30,34 +31,35 @@ class ScheduledServiceManager {
         services.put(simpleName, service);
     }
 
+    public Optional<AbstractScheduledService> getService(final String name) {
+        return Optional.ofNullable(services.get(name));
+    }
+
     public void runOnce(final String name) {
-        if (services.containsKey(name)) {
-            final AbstractScheduledService service = services.get(name);
+        getService(name).ifPresent(service -> {
             if (service instanceof Runnable) {
                 ((Runnable) service).run();
             }
-        }
+        });
     }
 
     public void start(final String name) {
-        if (services.containsKey(name)) {
-            final AbstractScheduledService service = services.get(name);
+        getService(name).ifPresent(service -> {
             if (!service.isRunning()) {
                 services.get(name).startAsync();
             }
-        }
+        });
     }
 
     public void stop(final String name) {
-        if (services.containsKey(name)) {
-            final AbstractScheduledService service = services.get(name);
+        getService(name).ifPresent(service -> {
             if (service.isRunning()) {
                 services.get(name).stopAsync();
             }
-        }
+        });
     }
 
-    public Map<String, Service.State> getServices() {
+    public Map<String, Service.State> getServiceStates() {
         final Map<String, Service.State> states = new HashMap<>();
         for (final Map.Entry<String, AbstractScheduledService> entry : services.entrySet()) {
             states.put(entry.getKey(), entry.getValue().state());
@@ -66,10 +68,10 @@ class ScheduledServiceManager {
     }
 
     public void startAll() {
-        getServices().keySet().forEach(this::start);
+        services.keySet().forEach(this::start);
     }
 
     public void stopAll() {
-        getServices().keySet().forEach(this::stop);
+        services.keySet().forEach(this::stop);
     }
 }

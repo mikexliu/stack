@@ -20,7 +20,7 @@ public abstract class DebugResource {
 
     @ApiOperation(value = "get-exception", notes = "get exception")
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/get-exception")
     public abstract String getException();
 }

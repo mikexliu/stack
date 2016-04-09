@@ -1,6 +1,6 @@
 package io.github.mikexliu.stack.guice.plugins.stack.scheduledservice;
 
-import com.google.common.util.concurrent.Service;
+import com.google.common.util.concurrent.*;
 import com.google.inject.Inject;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -15,6 +15,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import java.util.Map;
+import java.util.Optional;
 
 @Api(value = "Scheduled Services manager api", description = "Complete control Scheduled Services")
 @Path("/api/stack/scheduled-services/v1")
@@ -29,13 +30,32 @@ public final class ScheduledServiceManagerResource {
         this.scheduledServiceManager = scheduledServiceManager;
     }
 
-    @ApiOperation(value = "get-services",
+    @ApiOperation(value = "get-service-states",
             notes = "Returns all available services and its current state")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/get-services")
-    public Map<String, Service.State> getServices() {
-        return scheduledServiceManager.getServices();
+    @Path("/get-service-states")
+    public Map<String, Service.State> getServiceStates() {
+        return scheduledServiceManager.getServiceStates();
+    }
+
+    @ApiOperation(value = "get-cause",
+            notes = "Returns the cause of the failure")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/get-cause")
+    public Throwable getCause(
+            @ApiParam(value = "service", required = true)
+            @QueryParam(value = "service")
+            final String service) {
+        final Optional<com.google.common.util.concurrent.AbstractScheduledService> optionalService = scheduledServiceManager.getService(service);
+        if (optionalService.isPresent()) {
+            final com.google.common.util.concurrent.AbstractScheduledService scheduledService = optionalService.get();
+            if (scheduledService.state() == Service.State.FAILED) {
+                return scheduledService.failureCause();
+            }
+        }
+        return null;
     }
 
     @POST

@@ -34,5 +34,6 @@ public class AgingService extends AbstractScheduledService {
         } catch (Exception e) {
             log.warn(getClass() + " failed", e);
         }
+        throw new RuntimeException("Failed...!");
     }
 }
