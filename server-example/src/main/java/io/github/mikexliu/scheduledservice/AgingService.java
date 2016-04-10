@@ -2,12 +2,13 @@ package io.github.mikexliu.scheduledservice;
 
 import com.google.inject.Inject;
 import io.github.mikexliu.collect.User;
-import io.github.mikexliu.stack.guice.plugins.app.timed.Timed;
-import io.github.mikexliu.stack.guice.plugins.app.scheduledservice.AbstractScheduledService;
+import io.github.mikexliu.stack.guice.plugins.scheduledservice.AbstractScheduledService;
+import io.github.mikexliu.stack.guice.plugins.timed.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.UsersCache;
 
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class AgingService extends AbstractScheduledService {
@@ -23,7 +24,7 @@ public class AgingService extends AbstractScheduledService {
 
     @Override
     protected Scheduler scheduler() {
-        return Scheduler.newFixedDelaySchedule(5, 15, TimeUnit.SECONDS);
+        return Scheduler.newFixedDelaySchedule(2, 1, TimeUnit.SECONDS);
     }
 
     @Timed
@@ -31,9 +32,9 @@ public class AgingService extends AbstractScheduledService {
     public void run() {
         try {
             usersCache.getAllUsers().values().forEach(User::growUp);
+            TimeUnit.SECONDS.sleep(new Random().nextInt(3));
         } catch (Exception e) {
             log.warn(getClass() + " failed", e);
         }
-        throw new RuntimeException("Failed...!");
     }
 }

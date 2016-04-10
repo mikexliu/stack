@@ -14,7 +14,7 @@ import io.github.mikexliu.stack.guice.modules.apis.ContainersModule;
 import io.github.mikexliu.stack.guice.modules.apis.ResourcesModule;
 import io.github.mikexliu.stack.guice.modules.swagger.StackServletModule;
 import io.github.mikexliu.stack.guice.modules.swagger.handler.exception.ThrowableResponseHandler;
-import io.github.mikexliu.stack.guice.plugins.app.AppPlugin;
+import io.github.mikexliu.stack.guice.plugins.StackPlugin;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
 import org.eclipse.jetty.server.Server;
@@ -182,7 +182,7 @@ public class StackServer {
 
         private final Set<String> apiPackageNames;
         private final Set<Module> appModules;
-        private final Set<Class<? extends AppPlugin>> appPluginClasses;
+        private final Set<Class<? extends StackPlugin>> appPluginClasses;
 
         private String title = "stack";
         private String version = "0.0.1";
@@ -195,7 +195,7 @@ public class StackServer {
         private boolean swaggerEnabled = false;
         private String swaggerUIDirectory = "swagger-ui";
 
-        private final Map<Class<? extends AppPlugin>, AppPlugin> appPluginInstances;
+        private final Map<Class<? extends StackPlugin>, StackPlugin> appPluginInstances;
 
         public Builder() {
             this.apiPackageNames = new HashSet<>();
@@ -263,7 +263,7 @@ public class StackServer {
          * @param appPlugin
          * @return
          */
-        public Builder withAppPlugin(final Class<? extends AppPlugin> appPlugin) {
+        public Builder withAppPlugin(final Class<? extends StackPlugin> appPlugin) {
             this.appPluginClasses.add(appPlugin);
             return this;
         }
@@ -272,7 +272,7 @@ public class StackServer {
          * @param appPlugins
          * @return
          */
-        public Builder withAppLugins(final Class<? extends AppPlugin>... appPlugins) {
+        public Builder withAppLugins(final Class<? extends StackPlugin>... appPlugins) {
             this.appPluginClasses.addAll(Arrays.asList(appPlugins));
             return this;
         }
@@ -352,25 +352,25 @@ public class StackServer {
             return new StackServer(this);
         }
 
-        private void gatherAppPluginDependency(final Class<? extends AppPlugin> appPluginClass) {
+        private void gatherAppPluginDependency(final Class<? extends StackPlugin> appPluginClass) {
             verifyAppPluginClass(appPluginClass);
             try {
                 if (!appPluginInstances.containsKey(appPluginClass)) {
-                    final AppPlugin appPlugin = appPluginClass.newInstance();
-                    appPluginInstances.put(appPluginClass, appPlugin);
+                    final StackPlugin stackPlugin = appPluginClass.newInstance();
+                    appPluginInstances.put(appPluginClass, stackPlugin);
 
-                    appPlugin.getAppPluginDependencies().forEach(appPluginDependencyClass -> gatherAppPluginDependency(appPluginDependencyClass));
+                    stackPlugin.getDependencies().forEach(appPluginDependencyClass -> gatherAppPluginDependency(appPluginDependencyClass));
                 }
             } catch (InstantiationException | IllegalAccessException e) {
                 Preconditions.checkState(false, appPluginClass + " could not be instantiated.");
             }
         }
 
-        private void verifyAppPluginClass(final Class<? extends AppPlugin> appPluginClass) {
+        private void verifyAppPluginClass(final Class<? extends StackPlugin> appPluginClass) {
             try {
                 Preconditions.checkState(!Modifier.isAbstract(appPluginClass.getModifiers()), String.format("%s is abstract.", appPluginClass));
                 Preconditions.checkState(Modifier.isPublic(appPluginClass.getModifiers()), String.format("%s is not public.", appPluginClass));
-                final Constructor<? extends AppPlugin> constructor = appPluginClass.getConstructor();
+                final Constructor<? extends StackPlugin> constructor = appPluginClass.getConstructor();
                 Preconditions.checkState(Modifier.isPublic(constructor.getModifiers()),
                         String.format("Default constructor for %s is not public.", appPluginClass.getName()));
             } catch (NoSuchMethodException e) {

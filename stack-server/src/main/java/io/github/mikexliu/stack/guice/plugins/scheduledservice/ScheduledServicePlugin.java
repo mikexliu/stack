@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.plugins.app.scheduledservice;
+package io.github.mikexliu.stack.guice.plugins.scheduledservice;
 
 import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.inject.Binding;
@@ -7,7 +7,7 @@ import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
-import io.github.mikexliu.stack.guice.plugins.app.AppPlugin;
+import io.github.mikexliu.stack.guice.plugins.StackPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * Provides a REST interface into managing ScheduledServices.
  */
-public final class ScheduledServicePlugin extends AppPlugin {
+public final class ScheduledServicePlugin extends StackPlugin {
 
     private static final Logger log = LoggerFactory.getLogger(ScheduledServicePlugin.class);
 

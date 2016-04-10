@@ -32,7 +32,7 @@ public class ContainersModule extends AbstractModule {
                                 && !classObject.isInterface()
                                 && !Modifier.isAbstract(classObject.getModifiers())
                                 && classObject.getSuperclass().isAnnotationPresent(Path.class)) {
-                            log.info("Binding " + classObject + " in " + Scopes.SINGLETON);
+                            log.info("Binding Container " + classObject + " in " + Scopes.SINGLETON);
                             bind(classObject).in(Scopes.SINGLETON);
                         }
                     } catch (NoClassDefFoundError e) {

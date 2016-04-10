@@ -53,11 +53,12 @@ public class ResourcesModule extends AbstractModule {
         for (final Class<?> resource : resources) {
             final Object container = injector.getInstance(resource);
             bind((Class) resource).toInstance(container);
-            log.info("Binding: " + resource + " to " + container);
+            log.info("Binding Resource " + resource + " to Container " + container);
         }
 
         for (final Map.Entry<Class<?>, Class<?>> entry : resourcesWithContainers.entrySet()) {
             bindResourceToLocalContainer(entry.getKey(), entry.getValue());
+            log.info("Binding Resource " + entry.getKey() + " to Container " + entry.getValue());
         }
     }
 
@@ -106,7 +107,6 @@ public class ResourcesModule extends AbstractModule {
         }
 
         bindResourceToContainer(resource, injector.getInstance(container));
-        log.info("Binding " + resource + " to " + container);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

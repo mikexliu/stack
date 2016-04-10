@@ -1,10 +1,10 @@
-package io.github.mikexliu.stack.guice.plugins.app.metrics;
+package io.github.mikexliu.stack.guice.plugins.metrics;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Scopes;
-import io.github.mikexliu.stack.guice.plugins.app.AppPlugin;
+import io.github.mikexliu.stack.guice.plugins.StackPlugin;
 
-public class MetricsPlugin extends AppPlugin {
+public class MetricsPlugin extends StackPlugin {
 
     @Override
     protected void configure() {

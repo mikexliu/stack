@@ -1,10 +1,10 @@
 package io.github.mikexliu.guice.modules;
 
 import com.google.inject.Scopes;
-import io.github.mikexliu.stack.guice.plugins.app.AppPlugin;
+import io.github.mikexliu.stack.guice.plugins.StackPlugin;
 import service.UsersCache;
 
-public class ServiceModule extends AppPlugin {
+public class ServiceModule extends StackPlugin {
 
     @Override
     protected void configure() {

@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.plugins.app.filesystem;
+package io.github.mikexliu.stack.guice.plugins.filesystem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

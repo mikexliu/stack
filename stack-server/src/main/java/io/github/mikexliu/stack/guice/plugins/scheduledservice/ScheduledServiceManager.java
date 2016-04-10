@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.plugins.app.scheduledservice;
+package io.github.mikexliu.stack.guice.plugins.scheduledservice;
 
 import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.common.util.concurrent.Service;

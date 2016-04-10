@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.plugins.app.scheduledservice;
+package io.github.mikexliu.stack.guice.plugins.scheduledservice;
 
 public abstract class AbstractScheduledService extends com.google.common.util.concurrent.AbstractScheduledService implements Runnable {
 

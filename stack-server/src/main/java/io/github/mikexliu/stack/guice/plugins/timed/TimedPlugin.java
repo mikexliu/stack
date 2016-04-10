@@ -1,10 +1,10 @@
-package io.github.mikexliu.stack.guice.plugins.app.timed;
+package io.github.mikexliu.stack.guice.plugins.timed;
 
 import com.google.inject.matcher.Matchers;
-import io.github.mikexliu.stack.guice.plugins.app.AppPlugin;
-import io.github.mikexliu.stack.guice.plugins.app.metrics.MetricsPlugin;
+import io.github.mikexliu.stack.guice.plugins.StackPlugin;
+import io.github.mikexliu.stack.guice.plugins.metrics.MetricsPlugin;
 
-public class TimedPlugin extends AppPlugin {
+public class TimedPlugin extends StackPlugin {
 
     public TimedPlugin() {
         bindDependency(MetricsPlugin.class);

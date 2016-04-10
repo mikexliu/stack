@@ -1,8 +1,8 @@
 package io.github.mikexliu.main;
 
 import io.github.mikexliu.guice.modules.ServerExampleModule;
-import io.github.mikexliu.stack.guice.plugins.app.scheduledservice.ScheduledServicePlugin;
-import io.github.mikexliu.stack.guice.plugins.app.timed.TimedPlugin;
+import io.github.mikexliu.stack.guice.plugins.scheduledservice.ScheduledServicePlugin;
+import io.github.mikexliu.stack.guice.plugins.timed.TimedPlugin;
 import io.github.mikexliu.stack.server.StackServer;
 
 import javax.ws.rs.core.Response;
