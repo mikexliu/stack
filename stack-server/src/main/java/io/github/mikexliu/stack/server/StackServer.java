@@ -66,21 +66,21 @@ public class StackServer {
 
         this.builder = builder;
 
-        // stack modules
+        // app modules
         final Set<Module> appPlugins = new HashSet<>();
-        final Set<StackPlugin> stackPlugins = new HashSet<>();
-
         appPlugins.add(new ContainersModule(this.builder.apiPackageNames));
         appPlugins.addAll(this.builder.appModules);
         appPlugins.addAll(this.builder.appPluginInstances.values());
-        final Injector frontInjector = Guice.createInjector(appPlugins);
+        final Injector appInjector = Guice.createInjector(appPlugins);
 
         // stack modules
+        final Set<StackPlugin> stackPlugins = new HashSet<>();
         for (final Class<? extends StackPlugin> stackPluginClass : this.builder.stackPluginClasses) {
-            stackPlugins.add(stackPluginClass.getConstructor(Injector.class).newInstance(frontInjector));
+            stackPlugins.add(stackPluginClass.getConstructor(Injector.class).newInstance(appInjector));
         }
-        stackPlugins.add(new ResourcesModule(builder.apiPackageNames, frontInjector));
-        this.stackInjector = frontInjector.createChildInjector(stackPlugins);
+        stackPlugins.add(new ResourcesModule(builder.apiPackageNames, appInjector));
+
+        this.stackInjector = appInjector.createChildInjector(stackPlugins);
 
         this.server = new Server(builder.port);
     }
@@ -213,6 +213,7 @@ public class StackServer {
 
         /**
          * Default port: 5555
+         *
          * @param port
          * @return
          */
@@ -223,6 +224,7 @@ public class StackServer {
 
         /**
          * Default: disabled
+         *
          * @return
          */
         public Builder withCorsEnabled() {
@@ -363,7 +365,6 @@ public class StackServer {
         }
 
         /**
-         *
          * @return
          * @throws Exception
          */

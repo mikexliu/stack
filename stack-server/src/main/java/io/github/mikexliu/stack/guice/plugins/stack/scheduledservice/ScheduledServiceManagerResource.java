@@ -39,12 +39,12 @@ public final class ScheduledServiceManagerResource {
         return scheduledServiceManager.getServiceStates();
     }
 
-    @ApiOperation(value = "get-cause",
+    @ApiOperation(value = "get-failure-cause",
             notes = "Returns the cause of the failure")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/get-cause")
-    public Throwable getCause(
+    @Path("/get-failure-cause")
+    public Throwable getFailureCause(
             @ApiParam(value = "service", required = true)
             @QueryParam(value = "service")
             final String service) {

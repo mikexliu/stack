@@ -16,7 +16,9 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,7 +56,18 @@ public class StackServletModule extends ServletModule {
                     addCorsHeader((HttpServletResponse) response);
                 }
 
-                chain.doFilter(request, response);
+                try {
+                    chain.doFilter(request, response);
+                } catch (Exception e) {
+                    final Response handledResponse = throwableResponseHandler.respond(e);
+                    if (response instanceof HttpServletResponse) {
+                        final HttpServletResponse httpServletResponse = (HttpServletResponse) response;
+                        handledResponse.getHeaders().keySet().forEach(key -> httpServletResponse.addHeader(key, handledResponse.getHeaderString(key)));
+                        handledResponse.getCookies().entrySet().forEach(entry -> httpServletResponse.addCookie(new Cookie(entry.getKey(), entry.getValue().getValue())));
+                        httpServletResponse.getWriter().write(handledResponse.getEntity().toString());
+                        httpServletResponse.setStatus(handledResponse.getStatus());
+                    }
+                }
             }
 
             private void addCorsHeader(HttpServletResponse response) {
