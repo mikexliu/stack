@@ -1,8 +1,8 @@
 package io.github.mikexliu.stack.guice.modules.apis;
 
 import com.google.common.reflect.ClassPath;
+import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
-import io.github.mikexliu.stack.guice.plugins.app.AppPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 
-public class ContainersModule extends AppPlugin {
+public class ContainersModule extends AbstractModule {
 
     private static final Logger log = LoggerFactory.getLogger(ContainersModule.class);
 

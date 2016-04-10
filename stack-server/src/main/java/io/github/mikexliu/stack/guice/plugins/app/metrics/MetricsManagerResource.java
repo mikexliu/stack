@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.plugins.stack.metrics;
+package io.github.mikexliu.stack.guice.plugins.app.metrics;
 
 import com.google.inject.Inject;
 import io.swagger.annotations.Api;

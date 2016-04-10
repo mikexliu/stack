@@ -1,9 +1,8 @@
 package io.github.mikexliu.main;
 
 import io.github.mikexliu.guice.modules.ServerExampleModule;
+import io.github.mikexliu.stack.guice.plugins.app.scheduledservice.ScheduledServicePlugin;
 import io.github.mikexliu.stack.guice.plugins.app.timed.TimedPlugin;
-import io.github.mikexliu.stack.guice.plugins.stack.scheduledservice.AutoStartScheduledServicePlugin;
-import io.github.mikexliu.stack.guice.plugins.stack.scheduledservice.ScheduledServicePlugin;
 import io.github.mikexliu.stack.server.StackServer;
 
 import javax.ws.rs.core.Response;
@@ -18,7 +17,7 @@ public class Main {
                 .withApiPackageName("io.github.mikexliu.api")
                 .withSwaggerEnabled()
                 .withSwaggerUiDirectory("swagger-ui")
-                .withStackPlugins(ScheduledServicePlugin.class, AutoStartScheduledServicePlugin.class)
+                .withAppPlugin(ScheduledServicePlugin.class)
                 .withAppPlugin(TimedPlugin.class)
                 .withAppModule(new ServerExampleModule())
                 .withCorsEnabled()

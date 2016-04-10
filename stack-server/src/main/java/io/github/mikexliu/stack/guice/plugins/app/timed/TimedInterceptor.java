@@ -1,6 +1,8 @@
 package io.github.mikexliu.stack.guice.plugins.app.timed;
 
 import com.google.common.base.Stopwatch;
+import com.google.inject.Inject;
+import io.github.mikexliu.stack.guice.plugins.app.metrics.MetricsManager;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.slf4j.Logger;
@@ -10,7 +12,10 @@ import java.util.concurrent.TimeUnit;
 
 public class TimedInterceptor implements MethodInterceptor {
 
-    final Logger log = LoggerFactory.getLogger(TimedInterceptor.class);
+    private static final Logger log = LoggerFactory.getLogger(TimedInterceptor.class);
+
+    @Inject
+    private MetricsManager metricsManager;
 
     @Override
     public Object invoke(final MethodInvocation invocation) throws Throwable {

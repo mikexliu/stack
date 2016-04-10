@@ -3,6 +3,7 @@ package io.github.mikexliu.stack.server;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
@@ -14,7 +15,6 @@ import io.github.mikexliu.stack.guice.modules.apis.ResourcesModule;
 import io.github.mikexliu.stack.guice.modules.swagger.StackServletModule;
 import io.github.mikexliu.stack.guice.modules.swagger.handler.exception.ThrowableResponseHandler;
 import io.github.mikexliu.stack.guice.plugins.app.AppPlugin;
-import io.github.mikexliu.stack.guice.plugins.stack.StackPlugin;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
 import org.eclipse.jetty.server.Server;
@@ -74,14 +74,10 @@ public class StackServer {
         final Injector appInjector = Guice.createInjector(appPlugins);
 
         // stack modules
-        final Set<StackPlugin> stackPlugins = new HashSet<>();
-        for (final Class<? extends StackPlugin> stackPluginClass : this.builder.stackPluginClasses) {
-            stackPlugins.add(stackPluginClass.getConstructor(Injector.class).newInstance(appInjector));
-        }
-        stackPlugins.add(new ResourcesModule(builder.apiPackageNames, appInjector));
+        final Set<AbstractModule> stackPlugins = new HashSet<>();
+        stackPlugins.add(new ResourcesModule(appInjector));
 
-        this.stackInjector = appInjector.createChildInjector(stackPlugins);
-
+        this.stackInjector = Guice.createInjector(stackPlugins);
         this.server = new Server(builder.port);
     }
 
@@ -187,7 +183,6 @@ public class StackServer {
         private final Set<String> apiPackageNames;
         private final Set<Module> appModules;
         private final Set<Class<? extends AppPlugin>> appPluginClasses;
-        private final Set<Class<? extends StackPlugin>> stackPluginClasses;
 
         private String title = "stack";
         private String version = "0.0.1";
@@ -206,7 +201,6 @@ public class StackServer {
             this.apiPackageNames = new HashSet<>();
             this.appModules = new HashSet<>();
             this.appPluginClasses = new HashSet<>();
-            this.stackPluginClasses = new HashSet<>();
 
             this.appPluginInstances = new HashMap<>();
         }
@@ -284,24 +278,6 @@ public class StackServer {
         }
 
         /**
-         * @param stackPlugin
-         * @return
-         */
-        public Builder withStackPlugin(final Class<? extends StackPlugin> stackPlugin) {
-            this.stackPluginClasses.add(stackPlugin);
-            return this;
-        }
-
-        /**
-         * @param stackPlugins
-         * @return
-         */
-        public Builder withStackPlugins(final Class<? extends StackPlugin>... stackPlugins) {
-            this.stackPluginClasses.addAll(Arrays.asList(stackPlugins));
-            return this;
-        }
-
-        /**
          * Enables Swagger using the default swagger-ui resource
          * Default: disabled
          *
@@ -372,7 +348,6 @@ public class StackServer {
             Preconditions.checkArgument(!apiPackageNames.isEmpty(), "No api package name specified; cannot find api classes.");
 
             appPluginClasses.forEach(appPluginClass -> gatherAppPluginDependency(appPluginClass));
-            stackPluginClasses.forEach(stackPluginClass -> verifyStackPluginClass(stackPluginClass));
 
             return new StackServer(this);
         }
@@ -383,7 +358,6 @@ public class StackServer {
                 if (!appPluginInstances.containsKey(appPluginClass)) {
                     final AppPlugin appPlugin = appPluginClass.newInstance();
                     appPluginInstances.put(appPluginClass, appPlugin);
-                    stackPluginClasses.addAll(appPlugin.getStackPluginDependencies());
 
                     appPlugin.getAppPluginDependencies().forEach(appPluginDependencyClass -> gatherAppPluginDependency(appPluginDependencyClass));
                 }
@@ -402,19 +376,6 @@ public class StackServer {
             } catch (NoSuchMethodException e) {
                 Preconditions.checkState(false, String.format("Default constructor for %s does not exist.",
                         appPluginClass.getName()));
-            }
-        }
-
-        private void verifyStackPluginClass(final Class<? extends StackPlugin> stackPluginClass) {
-            try {
-                Preconditions.checkState(!Modifier.isAbstract(stackPluginClass.getModifiers()), String.format("%s is abstract.", stackPluginClass));
-                Preconditions.checkState(Modifier.isPublic(stackPluginClass.getModifiers()), String.format("%s is not public.", stackPluginClass));
-                final Constructor<? extends StackPlugin> constructor = stackPluginClass.getConstructor(Injector.class);
-                Preconditions.checkState(Modifier.isPublic(constructor.getModifiers()),
-                        String.format("Constructor %s(Injector injector) is not public.", stackPluginClass.getName()));
-            } catch (NoSuchMethodException e) {
-                Preconditions.checkState(false, String.format("Constructor %s(Injector injector) does not exist.",
-                        stackPluginClass.getName()));
             }
         }
     }
