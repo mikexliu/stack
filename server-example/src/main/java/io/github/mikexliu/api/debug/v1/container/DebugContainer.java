@@ -10,7 +10,12 @@ public class DebugContainer extends DebugResource {
     }
 
     @Override
-    public String getException() {
+    public String getJsonException() {
+        throw new IllegalStateException("Exception");
+    }
+
+    @Override
+    public String getStringException() {
         throw new IllegalStateException("Exception");
     }
 }

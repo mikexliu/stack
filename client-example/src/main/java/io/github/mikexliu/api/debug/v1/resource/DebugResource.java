@@ -18,9 +18,15 @@ public abstract class DebugResource {
     @Path("/get-string")
     public abstract String getString();
 
-    @ApiOperation(value = "get-exception", notes = "get exception")
+    @ApiOperation(value = "get-json-exception", notes = "get exception")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/get-exception")
-    public abstract String getException();
+    @Path("/get-json-exception")
+    public abstract String getJsonException();
+
+    @ApiOperation(value = "get-string-exception", notes = "get exception")
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    @Path("/get-string-exception")
+    public abstract String getStringException();
 }

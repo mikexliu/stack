@@ -24,7 +24,6 @@ public class Main {
                 .withCorsEnabled()
                 .withExceptionHandler(throwable ->
                         Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                                .entity(throwable)
                                 .build())
                 .withPort(5454)
                 .build()
