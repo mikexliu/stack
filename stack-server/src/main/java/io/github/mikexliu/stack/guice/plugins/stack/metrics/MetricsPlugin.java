@@ -1,5 +1,6 @@
 package io.github.mikexliu.stack.guice.plugins.stack.metrics;
 
+import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Injector;
 import com.google.inject.Scopes;
 import io.github.mikexliu.stack.guice.plugins.stack.StackPlugin;
@@ -14,7 +15,7 @@ public class MetricsPlugin extends StackPlugin {
     protected void configure() {
         bind(MetricsManagerResource.class).in(Scopes.SINGLETON);
 
-        // TODO: how to allow app plugins to access this?
+        bind(MetricRegistry.class).in(Scopes.SINGLETON);
         bind(MetricsManager.class).in(Scopes.SINGLETON);
     }
 }

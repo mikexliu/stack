@@ -75,7 +75,7 @@ public class StackServer {
         appPlugins.addAll(this.builder.appPluginInstances.values());
         final Injector frontInjector = Guice.createInjector(appPlugins);
 
-        // meta modules
+        // stack modules
         for (final Class<? extends StackPlugin> stackPluginClass : this.builder.stackPluginClasses) {
             stackPlugins.add(stackPluginClass.getConstructor(Injector.class).newInstance(frontInjector));
         }
