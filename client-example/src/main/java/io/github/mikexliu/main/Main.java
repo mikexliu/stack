@@ -5,6 +5,7 @@ import io.github.mikexliu.collect.User;
 import io.github.mikexliu.stack.client.StackClient;
 
 public class Main {
+
     public static void main(String[] args) {
         final StackClient stackClient = new StackClient("http", "localhost", 5454);
         final UsersResource usersResource = stackClient.getClient(UsersResource.class);
