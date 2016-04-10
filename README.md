@@ -128,13 +128,20 @@ That's it! The endpoint is now ready to be used.
 
 ```bash
 curl -X POST --header "Content-Type: application/json" --header "Accept: text/plain" -d "{
-  \"name\": \"string\",
+  \"name\": \"username\",
   \"age\": 0
 }" "http://localhost:5454/api/users/v1"
+
+a06e81b
 ```
 
 ```bash
-curl -X GET --header "Accept: application/json" "http://localhost:5454/api/users/v1/all"
+curl -X GET --header "Accept: application/json" "http://localhost:5454/api/users/v1/a06e81b"
+
+{
+  "name": "username",
+  "age": 0
+}
 ```
 
 ### client
