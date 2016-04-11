@@ -12,6 +12,15 @@
     <description>Create REST endpoints easily</description>
     <url>https://github.com/mikexliu/stack</url>
 
+    <developers>
+        <developer>
+            <name>Mike Liu</name>
+            <email>me@mikeliu.io</email>
+            <organization>https://github.com/mikexliu/stack</organization>
+            <organizationUrl>http://www.mikeliu.io</organizationUrl>
+        </developer>
+    </developers>
+
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -19,6 +28,12 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <scm>
+        <connection>scm:git:git@github.com:mikexliu/stack.git</connection>
+        <developerConnection>scm:git:git@github.com:mikexliu/stack.git</developerConnection>
+        <url>git@github.com:mikexliu/stack.git</url>
+    </scm>
 
     <modules>
         <module>example-client</module>
@@ -130,6 +145,12 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.7.13</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
         </dependency>
 
         <dependency>

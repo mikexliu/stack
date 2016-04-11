@@ -59,7 +59,7 @@ public abstract class UsersResource {
             final String id);
 }
 ```
-[source](https://github.com/mikexliu/stack/blob/master/example-client/src/main/java/io/github/mikexliu/api/users/v1/resource/UsersResource.java)
+###### [source](https://github.com/mikexliu/stack/blob/master/example-client/src/main/java/io/github/mikexliu/api/users/v1/resource/UsersResource.java)
 
 Define the implementation by extending the endpoint class. The example implementation has very little logic but could
 have very well contained a full application.
@@ -86,7 +86,7 @@ public class UsersContainer extends UsersResource {
     }
 }
 ```
-[source](https://github.com/mikexliu/stack/blob/master/example-server/src/main/java/io/github/mikexliu/api/users/v1/container/UsersContainer.java)
+###### [source](https://github.com/mikexliu/stack/blob/master/example-server/src/main/java/io/github/mikexliu/api/users/v1/container/UsersContainer.java)
 
 Let's start it up!
 ```java
@@ -100,9 +100,9 @@ public class Main {
                 .withDescription("server-example description")
                 .withVersion("0.0.1-SNAPSHOT")
                 .withApiPackageName("io.github.mikexliu.api")
-                .withSwaggerEnabled()
                 .withSwaggerUiDirectory("swagger-ui")
-                .withAppModule(new ServerExampleModule())
+                .withSwaggerEnabled()
+                .withModule(new ServerExampleModule())
                 .withExceptionHandler(throwable ->
                         Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                                 .build())
@@ -112,7 +112,7 @@ public class Main {
     }
 }
 ```
-[source](https://github.com/mikexliu/stack/blob/master/example-server/src/main/java/io/github/mikexliu/main/Main.java)
+###### [source](https://github.com/mikexliu/stack/blob/master/example-server/src/main/java/io/github/mikexliu/main/Main.java)
 
 That's it! The endpoint is now ready to be used.
 
@@ -156,7 +156,7 @@ public class Main {
     }
 }
 ```
-[source](https://github.com/mikexliu/stack/blob/master/example-client/src/main/java/io/github/mikexliu/main/Main.java)
+###### [source](https://github.com/mikexliu/stack/blob/master/example-client/src/main/java/io/github/mikexliu/main/Main.java)
 
 Notice we don't depend on `UsersContainer` at all. `StackClient` infers the endpoint from `UsersResource` and builds 
 the request for you.  It automatically serializes the arguments and deserializes the return value so you don't have to do any work.
@@ -196,7 +196,7 @@ public class AgingService extends AbstractScheduledService {
     }
 }
 ```
-[source](https://github.com/mikexliu/stack/blob/master/example-server/src/main/java/io/github/mikexliu/scheduledservice/AgingService.java)
+###### [source](https://github.com/mikexliu/stack/blob/master/example-server/src/main/java/io/github/mikexliu/scheduledservice/AgingService.java)
 
 You might have noticed the `@Timed` annotation. `stack` includes metrics reporting out of the box as well!
 In this case, we want to track how long the execution takes. All of the metrics are added into [`dropwizard metrics`](https://dropwizard.github.io/metrics/3.1.0/getting-started/).
@@ -217,11 +217,11 @@ public class Main {
                 .withDescription("server-example description")
                 .withVersion("0.0.1-SNAPSHOT")
                 .withApiPackageName("io.github.mikexliu.api")
-                .withSwaggerEnabled()
                 .withSwaggerUiDirectory("swagger-ui")
-                .withAppPlugin(ScheduledServicePlugin.class)
-                .withAppPlugin(TimedPlugin.class)
-                .withAppModule(new ServerExampleModule())
+                .withSwaggerEnabled()
+                .withPlugin(ScheduledServicePlugin.class)
+                .withPlugin(TimedPlugin.class)
+                .withModule(new ServerExampleModule())
                 .withCorsEnabled()
                 .withExceptionHandler(throwable ->
                         Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -232,7 +232,7 @@ public class Main {
     }
 }
 ```
-[source](https://github.com/mikexliu/stack/blob/master/example-server/src/main/java/io/github/mikexliu/main/Main.java)
+###### [source](https://github.com/mikexliu/stack/blob/master/example-server/src/main/java/io/github/mikexliu/main/Main.java)
 
 The details are in another documentation, but with the inclusion of these two `plugins`, we've added
 quite a few more endpoints we can use.
@@ -277,7 +277,7 @@ in culpa qui officia deserunt mollit anim id est laborum.
 If an existing REST endpoint exists with valid `jersey` annotations defined, then we can use that code and create a client immediately.
 
 This user resource comes directly from the [swagger-ui test page](http://petstore.swagger.io).
-[Existing source here](https://github.com/swagger-api/swagger-samples/blob/master/java/java-jersey-jaxrs/src/main/java/io/swagger/sample/resource/UserResource.java).
+[Original source code](https://github.com/swagger-api/swagger-samples/blob/master/java/java-jersey-jaxrs/src/main/java/io/swagger/sample/resource/UserResource.java).
 ```java
 package io.github.mikexliu.api.petstore.v2.user;
 
@@ -325,7 +325,7 @@ public abstract class UserResource {
             final String username);
 }
 ```
-[source](https://github.com/mikexliu/stack/blob/master/example-remote/src/main/java/io/github/mikexliu/api/petstore/v2/user/UserResource.java)
+###### [source](https://github.com/mikexliu/stack/blob/master/example-remote/src/main/java/io/github/mikexliu/api/petstore/v2/user/UserResource.java)
 
 In this example, we make a remote call against an [actual endpoint](http://petstore.swagger.io) that we have no control over.
 The code creates and updates a user. In between each step, we verify against the server that the data is correct.
@@ -362,7 +362,7 @@ public class Main {
     }
 }
 ```
-[source](https://github.com/mikexliu/stack/blob/master/example-remote/src/main/java/io/github/mikexliu/main/Main.java)
+###### [source](https://github.com/mikexliu/stack/blob/master/example-remote/src/main/java/io/github/mikexliu/main/Main.java)
 
 # license
     Copyright 2016 Mike Liu
