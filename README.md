@@ -1,16 +1,17 @@
 # stack
 
 # introduction
-`stack` allows you to build a REST endpoint while truly separating the endpoint definitions
-and the implementation.
+`stack` allows you to build a REST endpoint while truly separating the endpoint definitions and the implementation.
 
 # quick start
 ## installation
-```TODO: not implemented```
+* jdk8
+* maven3
+* guice
+* jersey
+* swagger-ui
 
 ## dependency
-```TODO: not implemented```
-
 ```xml
 <dependency>
     <groupId>io.github.mikexliu</groupId>
@@ -18,7 +19,6 @@ and the implementation.
     <version>0.0.1-SNAPSHOT</version>
 </dependency>
 ```
-
 ```xml
 <dependency>
     <groupId>io.github.mikexliu</groupId>
@@ -29,9 +29,9 @@ and the implementation.
 
 ## start coding
 `stack` requires very little code to get started. The source code for the examples are available in the repository. 
-Some lines have been removed for clarity in this README. All sources are linked.
+**Some lines have been removed for clarity in this README. All sources are linked.**
 
-### server
+### creating a server
 Define an endpoint using standard [jersey](https://jersey.java.net/documentation/latest/jaxrs-resources.html) and [swagger](https://github.com/swagger-api/swagger-core/wiki/Annotations-1.5.X).
 Note that the classes and all methods are abstract.
 ```java
@@ -134,7 +134,7 @@ curl -X GET --header "Accept: application/json" "http://localhost:5454/api/users
 }
 ```
 
-### client
+### creating a client
 No one is actually going to use the endpoints with curl though. We want to use this natively.
 So let's create another simple main class that depends only on the resource class defined above.
 ```java
@@ -161,9 +161,8 @@ public class Main {
 Notice we don't depend on `UsersContainer` at all. `StackClient` infers the endpoint from `UsersResource` and builds 
 the request for you.  It automatically serializes the arguments and deserializes the return value so you don't have to do any work.
 Because `stack-server` and `stack-client` are separated from each other, there's no chance of circular dependencies.
-Feel free to include on as many `stack-client` projects as needed.
 
-### expanding server
+### expanding server functionality
 Let's make the server do some active work. Users age, so let's add that! Note that it uses a custom version of
 `AbstractScheduledService` (not the [guava](https://github.com/google/guava) version).
 ```java
@@ -263,13 +262,162 @@ automatically increment their ages on a timer, and report how long it takes to d
 
 # documentation
 ## stack-server
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut 
-labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris 
-nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit 
-esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt 
-in culpa qui officia deserunt mollit anim id est laborum.
+`stack-server` creates the actual endpoint services. It also supports scheduled services and metrics out of the
+box. Some more advanced services that might go here include caches, asynchronous work, or even streams.
+
+### plugins
+`stack-server` was made to be heavily customizable. For any feature that is deemed useful, a plugin is created instead
+of hardcoding the feature in. A plugin is just a `module` in `guice`; however, it finds the dependencies and excutes code
+before `stack-server` starts. This allows it to do pre-processing work such as scanning for bound classes or registering
+more `resource` endpoints. Let's go over two examples plugins that work together: `timed` and `metrics`.
+#### timed plugin
+```java
+package io.github.mikexliu.stack.guice.plugins.timed;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Timed {
+    String key() default "";
+}
+```
+```java
+package io.github.mikexliu.stack.guice.plugins.timed;
+
+public class TimedInterceptor implements MethodInterceptor {
+
+    private static final Logger log = LoggerFactory.getLogger(TimedInterceptor.class);
+
+    @Inject
+    private MetricRegistry metricRegistry;
+
+    @Override
+    public Object invoke(final MethodInvocation invocation) throws Throwable {
+        final Class<?> callingClass = getClass(invocation.getThis().getClass());
+        final String methodName = invocation.getMethod().getName();
+        final Timer timerMetric = metricRegistry.timer(MetricRegistry.name(callingClass, methodName, "timer"));
+        final Timer.Context timerContext = timerMetric.time();
+        try {
+            log.info(String.format("%s.%s started", callingClass, methodName));
+            return invocation.proceed();
+        } finally {
+            final long elapsed = TimeUnit.NANOSECONDS.toMillis(timerContext.stop());
+            log.info(String.format("%s.%s finished; took %sms", callingClass, methodName, elapsed));
+        }
+    }
+
+    private Class<?> getClass(final Class<?> callingClass) {
+        if (callingClass.getSimpleName().contains("EnhancerByGuice")) {
+            return callingClass.getSuperclass();
+        }
+        return callingClass;
+    }
+}
+
+```
+```java
+package io.github.mikexliu.stack.guice.plugins.timed;
+
+public class TimedPlugin extends StackPlugin {
+
+    public TimedPlugin() {
+        bindDependency(MetricsPlugin.class);
+    }
+
+    @Override
+    protected void configure() {
+        final TimedInterceptor interceptor = new TimedInterceptor();
+        bindInterceptor(Matchers.any(), Matchers.annotatedWith(Timed.class), interceptor);
+        requestInjection(interceptor);
+    }
+}
+```
+Notice the call `bindDependency`. This tells stack that we also need to include the `MetricsPlugin` as part of its
+dependency injection algorithm. `timed` needs an instance of `MetricRegistry` in `TimedInterceptor` but we don't want to
+create an instance for every `Timed` annotation. In fact, there should only be one instance so the metrics can be
+extracted! Calling the `bindDependency` that only one instance is created and the `requestInjection` is successful.
+
+Unfortunately, there is no way for `guice` to include an interceptor by supplying the `class` object. That is why we must
+have `requestInjection`.
+
+#### metrics plugin
+```java
+package io.github.mikexliu.stack.guice.plugins.metrics;
+
+@Api(value = "Metrics manager api", description = "Metrics description")
+@Path("/api/stack/metrics/v1")
+public final class MetricsManagerResource {
+
+    private static final Logger log = LoggerFactory.getLogger(MetricsManagerResource.class);
+
+    private final MetricsManager metricsManager;
+
+    @Inject
+    public MetricsManagerResource(final MetricsManager metricsManager) {
+        this.metricsManager = metricsManager;
+    }
+
+    @ApiOperation(value = "get-metrics",
+            notes = "Returns all available metrics")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/get-metrics")
+    public Map<String, Map<String, String>> getServices() {
+        return metricsManager.getMetrics();
+    }
+}
+```
+```java
+package io.github.mikexliu.stack.guice.plugins.metrics;
+
+public class MetricsManager {
+
+    private static final Logger log = LoggerFactory.getLogger(MetricsManager.class);
+
+    private final MetricRegistry metricRegistry;
+
+    @Inject
+    public MetricsManager(final MetricRegistry metricRegistry) {
+        this.metricRegistry = metricRegistry;
+    }
+
+    public Map<String, Map<String, String>> getMetrics() {
+        final Map<String, Map<String, String>> metrics = new HashMap<>();
+
+        metricRegistry.getTimers().entrySet().forEach(entry -> {
+            final Map<String, String> data = new HashMap<>();
+            final Timer timerMetric = entry.getValue();
+            final Snapshot snapshot = entry.getValue().getSnapshot();
+            data.put("count", Long.toString(timerMetric.getCount()));
+            data.put("min", Long.toString(snapshot.getMin()));
+            data.put("max", Long.toString(snapshot.getMax()));
+            data.put("mean", Double.toString(snapshot.getMean()));
+
+            metrics.put(entry.getKey(), data);
+        });
+        return metrics;
+    }
+}
+```
+```
+package io.github.mikexliu.stack.guice.plugins.metrics;
+
+public class MetricsPlugin extends StackPlugin {
+
+    @Override
+    protected void configure() {
+        bind(MetricsManagerResource.class).in(Scopes.SINGLETON);
+
+        bind(MetricRegistry.class).in(Scopes.SINGLETON);
+        bind(MetricsManager.class).in(Scopes.SINGLETON);
+    }
+}
+```
+Simply by including `MetricsManagerResource`, we create an entirely new endpoint that can be used by the server. Notice
+it does not follow the convention `abstract class` and `implementing class`. This is purely because we do not expect
+there to be multiple implementations of the `resource`.
 
 ## stack-client
+
 ### native code
 ```TODO: not implemented```
 
@@ -277,7 +425,7 @@ in culpa qui officia deserunt mollit anim id est laborum.
 If an existing REST endpoint exists with valid `jersey` annotations defined, then we can use that code and create a client immediately.
 
 This user resource comes directly from the [swagger-ui test page](http://petstore.swagger.io).
-[Original source code](https://github.com/swagger-api/swagger-samples/blob/master/java/java-jersey-jaxrs/src/main/java/io/swagger/sample/resource/UserResource.java).
+[External source code](https://github.com/swagger-api/swagger-samples/blob/master/java/java-jersey-jaxrs/src/main/java/io/swagger/sample/resource/UserResource.java).
 ```java
 package io.github.mikexliu.api.petstore.v2.user;
 
@@ -325,7 +473,7 @@ public abstract class UserResource {
             final String username);
 }
 ```
-[source](https://github.com/mikexliu/stack/blob/master/example-remote/src/main/java/io/github/mikexliu/api/petstore/v2/user/UserResource.java)
+###### [source](https://github.com/mikexliu/stack/blob/master/example-remote/src/main/java/io/github/mikexliu/api/petstore/v2/user/UserResource.java)
 
 In this example, we make a remote call against an [actual endpoint](http://petstore.swagger.io) that we have no control over.
 The code creates and updates a user. In between each step, we verify against the server that the data is correct.
@@ -362,10 +510,10 @@ public class Main {
     }
 }
 ```
-[source](https://github.com/mikexliu/stack/blob/master/example-remote/src/main/java/io/github/mikexliu/main/Main.java)
+###### [source](https://github.com/mikexliu/stack/blob/master/example-remote/src/main/java/io/github/mikexliu/main/Main.java)
 
-# future
-- [x] metrics
+# planned
+- [x] metrics integration
 - [ ] pagination plugin
 - [ ] metric-ui plugin
 - [ ] swagger-ui jar
