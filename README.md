@@ -331,7 +331,7 @@ public abstract class UserResource {
             final String username);
             
     // ... full source code in repository
-
+}
 ```
 
 In this example, we make a remote call against an [actual endpoint](http://petstore.swagger.io) that we have no control over.
