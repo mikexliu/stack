@@ -2,6 +2,7 @@ package io.github.mikexliu.stack.server;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -69,8 +70,8 @@ public class StackServer {
         // app modules
         final Set<Module> appPlugins = new HashSet<>();
         appPlugins.add(new ContainersModule(this.builder.apiPackageNames));
-        appPlugins.addAll(this.builder.appModules);
-        appPlugins.addAll(this.builder.appPluginInstances.values());
+        appPlugins.addAll(this.builder.modules);
+        appPlugins.addAll(this.builder.pluginInstances.values());
         final Injector appInjector = Guice.createInjector(appPlugins);
 
         // stack modules
@@ -181,8 +182,8 @@ public class StackServer {
     public static final class Builder {
 
         private final Set<String> apiPackageNames;
-        private final Set<Module> appModules;
-        private final Set<Class<? extends StackPlugin>> appPluginClasses;
+        private final Set<Module> modules;
+        private final Set<Class<? extends StackPlugin>> plugins;
 
         private String title = "stack";
         private String version = "0.0.1";
@@ -195,14 +196,14 @@ public class StackServer {
         private boolean swaggerEnabled = false;
         private String swaggerUIDirectory = "swagger-ui";
 
-        private final Map<Class<? extends StackPlugin>, StackPlugin> appPluginInstances;
+        private final Map<Class<? extends StackPlugin>, StackPlugin> pluginInstances;
 
         public Builder() {
             this.apiPackageNames = new HashSet<>();
-            this.appModules = new HashSet<>();
-            this.appPluginClasses = new HashSet<>();
+            this.modules = new HashSet<>();
+            this.plugins = new HashSet<>();
 
-            this.appPluginInstances = new HashMap<>();
+            this.pluginInstances = new HashMap<>();
         }
 
         /**
@@ -251,29 +252,29 @@ public class StackServer {
         }
 
         /**
-         * @param appModule
+         * @param module
          * @return
          */
-        public Builder withAppModule(final Module appModule) {
-            this.appModules.add(appModule);
+        public Builder withModule(final Module module) {
+            this.modules.add(module);
             return this;
         }
 
         /**
-         * @param appPlugin
+         * @param plugin
          * @return
          */
-        public Builder withAppPlugin(final Class<? extends StackPlugin> appPlugin) {
-            this.appPluginClasses.add(appPlugin);
+        public Builder withPlugin(final Class<? extends StackPlugin> plugin) {
+            this.plugins.add(plugin);
             return this;
         }
 
         /**
-         * @param appPlugins
+         * @param plugins
          * @return
          */
-        public Builder withAppLugins(final Class<? extends StackPlugin>... appPlugins) {
-            this.appPluginClasses.addAll(Arrays.asList(appPlugins));
+        public Builder withPlugins(final Class<? extends StackPlugin>... plugins) {
+            this.plugins.addAll(Arrays.asList(plugins));
             return this;
         }
 
@@ -296,7 +297,6 @@ public class StackServer {
          * @return
          */
         public Builder withSwaggerUiDirectory(final String swaggerUIDirectory) {
-            this.withSwaggerEnabled();
             this.swaggerUIDirectory = swaggerUIDirectory;
             return this;
         }
@@ -309,7 +309,6 @@ public class StackServer {
          * @return
          */
         public Builder withTitle(final String title) {
-            this.withSwaggerEnabled();
             this.title = title;
             return this;
         }
@@ -322,7 +321,6 @@ public class StackServer {
          * @return
          */
         public Builder withVersion(final String version) {
-            this.withSwaggerEnabled();
             this.version = version;
             return this;
         }
@@ -335,7 +333,6 @@ public class StackServer {
          * @return
          */
         public Builder withDescription(final String description) {
-            this.withSwaggerEnabled();
             this.description = description;
             return this;
         }
@@ -346,36 +343,40 @@ public class StackServer {
          */
         public StackServer build() throws Exception {
             Preconditions.checkArgument(!apiPackageNames.isEmpty(), "No api package name specified; cannot find api classes.");
+            Preconditions.checkArgument(Strings.isNullOrEmpty(version) && swaggerEnabled, "Version specified but swagger-ui is not enabled.");
+            Preconditions.checkArgument(Strings.isNullOrEmpty(description) && swaggerEnabled, "Description specified but swagger-ui is not enabled.");
+            Preconditions.checkArgument(Strings.isNullOrEmpty(title) && swaggerEnabled, "Title specified but swagger-ui is not enabled.");
+            Preconditions.checkArgument(Strings.isNullOrEmpty(swaggerUIDirectory) && swaggerEnabled, "Swagger directory specified but swagger-ui is not enabled.");
 
-            appPluginClasses.forEach(appPluginClass -> gatherAppPluginDependency(appPluginClass));
+            plugins.forEach(appPluginClass -> gatherPluginDependencies(appPluginClass));
 
             return new StackServer(this);
         }
 
-        private void gatherAppPluginDependency(final Class<? extends StackPlugin> appPluginClass) {
-            verifyAppPluginClass(appPluginClass);
+        private void gatherPluginDependencies(final Class<? extends StackPlugin> plugin) {
             try {
-                if (!appPluginInstances.containsKey(appPluginClass)) {
-                    final StackPlugin stackPlugin = appPluginClass.newInstance();
-                    appPluginInstances.put(appPluginClass, stackPlugin);
+                if (!pluginInstances.containsKey(plugin)) {
+                    verifyPlugin(plugin);
+                    final StackPlugin stackPlugin = plugin.newInstance();
+                    pluginInstances.put(plugin, stackPlugin);
 
-                    stackPlugin.getDependencies().forEach(appPluginDependencyClass -> gatherAppPluginDependency(appPluginDependencyClass));
+                    stackPlugin.getDependencies().forEach(appPluginDependencyClass -> gatherPluginDependencies(appPluginDependencyClass));
                 }
             } catch (InstantiationException | IllegalAccessException e) {
-                Preconditions.checkState(false, appPluginClass + " could not be instantiated.");
+                Preconditions.checkState(false, plugin + " could not be instantiated.");
             }
         }
 
-        private void verifyAppPluginClass(final Class<? extends StackPlugin> appPluginClass) {
+        private void verifyPlugin(final Class<? extends StackPlugin> plugin) {
             try {
-                Preconditions.checkState(!Modifier.isAbstract(appPluginClass.getModifiers()), String.format("%s is abstract.", appPluginClass));
-                Preconditions.checkState(Modifier.isPublic(appPluginClass.getModifiers()), String.format("%s is not public.", appPluginClass));
-                final Constructor<? extends StackPlugin> constructor = appPluginClass.getConstructor();
+                Preconditions.checkState(!Modifier.isAbstract(plugin.getModifiers()), String.format("%s is abstract.", plugin));
+                Preconditions.checkState(Modifier.isPublic(plugin.getModifiers()), String.format("%s is not public.", plugin));
+                final Constructor<? extends StackPlugin> constructor = plugin.getConstructor();
                 Preconditions.checkState(Modifier.isPublic(constructor.getModifiers()),
-                        String.format("Default constructor for %s is not public.", appPluginClass.getName()));
+                        String.format("Default constructor for %s is not public.", plugin.getName()));
             } catch (NoSuchMethodException e) {
                 Preconditions.checkState(false, String.format("Default constructor for %s does not exist.",
-                        appPluginClass.getName()));
+                        plugin.getName()));
             }
         }
     }
