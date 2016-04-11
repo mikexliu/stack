@@ -6,12 +6,11 @@ and the implementation.
 
 # quick start
 ## installation
-`TODO: not implemented`
+```TODO: not implemented```
 
 ## dependency
-`TODO: install into maven central`
+```TODO: not implemented```
 
-server
 ```xml
 <dependency>
     <groupId>io.github.mikexliu</groupId>
@@ -20,7 +19,6 @@ server
 </dependency>
 ```
 
-client
 ```xml
 <dependency>
     <groupId>io.github.mikexliu</groupId>
@@ -275,12 +273,100 @@ labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitatio
 nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit 
 esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt 
 in culpa qui officia deserunt mollit anim id est laborum.
+
 ## stack-client
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut 
-labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris 
-nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit 
-esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt 
-in culpa qui officia deserunt mollit anim id est laborum.
+### native code
+```TODO: not implemented```
+
+### remote client
+If an existing REST endpoint exists with valid `jersey` and `swagger` annotations defined, then we can
+use that code and create a client immediately.
+
+This user resource comes directly from the [swagger-ui test page](http://petstore.swagger.io).
+[Existing source here](https://github.com/swagger-api/swagger-samples/blob/master/java/java-jersey-jaxrs/src/main/java/io/swagger/sample/resource/UserResource.java).
+```java
+package io.github.mikexliu.api.petstore.v2.user;
+
+@Path("/v2/user")
+@Api(value = "/user", description = "Operations about user")
+@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+public abstract class UserResource {
+
+    @POST
+    @ApiOperation(value = "Create user",
+            notes = "This can only be done by the logged in user.",
+            position = 1)
+    public abstract void createUser(
+            @ApiParam(value = "Created user object", required = true)
+            final User user);
+            
+    @PUT
+        @Path("/{username}")
+        @ApiOperation(value = "Updated user",
+                notes = "This can only be done by the logged in user.",
+                position = 4)
+        @ApiResponses(value = {
+                @ApiResponse(code = 400, message = "Invalid user supplied"),
+                @ApiResponse(code = 404, message = "User not found")})
+        public abstract void updateUser(
+                @ApiParam(value = "name that need to be updated", required = true)
+                @PathParam("username")
+                final String username,
+    
+                @ApiParam(value = "Updated user object", required = true)
+                final User user);
+
+    @GET
+    @Path("/{username}")
+    @ApiOperation(value = "Get user by user name",
+            response = User.class,
+            position = 0)
+    @ApiResponses(value = {
+            @ApiResponse(code = 400, message = "Invalid username supplied"),
+            @ApiResponse(code = 404, message = "User not found")})
+    @Produces(MediaType.APPLICATION_JSON)
+    public abstract User getUserByName(
+            @ApiParam(value = "The name that needs to be fetched. Use user1 for testing. ", required = true)
+            @PathParam("username")
+            final String username);
+            
+    // ... full source code in repository
+
+```
+
+In this example, we make a remote call against an [actual endpoint](http://petstore.swagger.io) that we have no control over.
+The code creates and updates a user. In between each step, we verify against the server that the data is correct.
+```java
+package io.github.mikexliu.main;
+
+public class Main {
+
+    public static void main(String[] args) {
+        final StackClient stackClient = new StackClient("http", "petstore.swagger.io", 80);
+        final UserResource userResource = stackClient.getClient(UserResource.class);
+
+        final User user = new User();
+        user.id = 1234;
+        user.firstName = "first name";
+        user.lastName = "last name";
+        user.email = "mxl@github.io";
+        user.phone = "123-456-7890";
+        user.username = "mxl";
+        user.password = "hi";
+        user.userStatus = 5;
+        userResource.createUser(user);
+
+        User response = userResource.getUserByName("mxl");
+        System.out.println(user.firstName.equals(response.firstName)); // true
+
+        user.firstName = "changed name";
+        System.out.println(user.firstName.equals(response.firstName)); // false
+
+        userResource.updateUser("mxl", user);
+        response = userResource.getUserByName("mxl");
+        System.out.println(user.firstName.equals(response.firstName)); // true
+    }
+```
 
 # license
     Copyright 2016 Mike Liu

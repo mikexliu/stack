@@ -7,7 +7,7 @@ import io.github.mikexliu.stack.client.StackClient;
 public class Main {
 
     public static void main(String[] args) {
-        final StackClient stackClient = new StackClient("http", "http://petstore.swagger.io/v2/user", 80);
+        final StackClient stackClient = new StackClient("http", "petstore.swagger.io", 80);
         final UserResource userResource = stackClient.getClient(UserResource.class);
 
         final User user = new User();

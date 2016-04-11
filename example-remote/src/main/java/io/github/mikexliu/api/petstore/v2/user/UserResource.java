@@ -21,7 +21,7 @@ import javax.ws.rs.core.Response;
 import java.util.Date;
 import java.util.List;
 
-@Path("/api/user")
+@Path("/v2/user")
 @Api(value = "/user", description = "Operations about user")
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public abstract class UserResource {
