@@ -324,7 +324,8 @@ public abstract class UserResource {
             @PathParam("username")
             final String username);
 }
-```[source](https://github.com/mikexliu/stack/blob/master/example-remote/src/main/java/io/github/mikexliu/api/petstore/v2/user/UserResource.java)
+```
+[source](https://github.com/mikexliu/stack/blob/master/example-remote/src/main/java/io/github/mikexliu/api/petstore/v2/user/UserResource.java)
 
 In this example, we make a remote call against an [actual endpoint](http://petstore.swagger.io) that we have no control over.
 The code creates and updates a user. In between each step, we verify against the server that the data is correct.
@@ -360,7 +361,8 @@ public class Main {
         System.out.println(user.firstName.equals(response.firstName)); // true
     }
 }
-```[source](https://github.com/mikexliu/stack/blob/master/example-remote/src/main/java/io/github/mikexliu/main/Main.java)
+```
+[source](https://github.com/mikexliu/stack/blob/master/example-remote/src/main/java/io/github/mikexliu/main/Main.java)
 
 # future
 - [x] metrics
