@@ -202,8 +202,8 @@ You might have noticed the `@Timed` annotation. `stack` includes metrics reporti
 In this case, we want to track how long the execution takes. All of the metrics are added into [`dropwizard metrics`](https://dropwizard.github.io/metrics/3.1.0/getting-started/).
 To access the service and metrics, we'll need to add two new lines to the `main` class:
 ```java
-.withAppPlugin(ScheduledServicePlugin.class)
-.withAppPlugin(TimedPlugin.class)
+.withPlugin(ScheduledServicePlugin.class)
+.withPlugin(TimedPlugin.class)
 ```
 
 ```java
@@ -329,7 +329,7 @@ public abstract class UserResource {
 
 In this example, we make a remote call against an [actual endpoint](http://petstore.swagger.io) that we have no control over.
 The code creates and updates a user. In between each step, we verify against the server that the data is correct.
-```java
+[```java
 package io.github.mikexliu.main;
 
 public class Main {
@@ -361,8 +361,7 @@ public class Main {
         System.out.println(user.firstName.equals(response.firstName)); // true
     }
 }
-```
-###### [source](https://github.com/mikexliu/stack/blob/master/example-remote/src/main/java/io/github/mikexliu/main/Main.java)
+```](https://github.com/mikexliu/stack/blob/master/example-remote/src/main/java/io/github/mikexliu/main/Main.java)
 
 # license
     Copyright 2016 Mike Liu
