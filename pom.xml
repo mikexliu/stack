@@ -11,8 +11,9 @@
     <name>stack</name>
 
     <modules>
-        <module>server-example</module>
-        <module>client-example</module>
+        <module>example-client</module>
+        <module>example-remote</module>
+        <module>example-server</module>
         <module>stack-client</module>
         <module>stack-server</module>
     </modules>
