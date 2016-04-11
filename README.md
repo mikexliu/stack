@@ -329,8 +329,8 @@ public abstract class UserResource {
 
 In this example, we make a remote call against an [actual endpoint](http://petstore.swagger.io) that we have no control over.
 The code creates and updates a user. In between each step, we verify against the server that the data is correct.
-```java
 [source](https://github.com/mikexliu/stack/blob/master/example-remote/src/main/java/io/github/mikexliu/main/Main.java)
+```java
 package io.github.mikexliu.main;
 
 public class Main {
