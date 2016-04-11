@@ -25,6 +25,7 @@ public class Main {
         System.out.println(user.firstName.equals(response.firstName)); // true
 
         user.firstName = "changed name";
+        response = userResource.getUserByName("mxl");
         System.out.println(user.firstName.equals(response.firstName)); // false
 
         userResource.updateUser("mxl", user);
