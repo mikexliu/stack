@@ -280,6 +280,7 @@ public @interface Timed {
     String key() default "";
 }
 ```
+###### [source](https://github.com/mikexliu/stack/blob/master/stack-server/src/main/java/io/github/mikexliu/stack/guice/plugins/timed/Timed.java)
 ```java
 package io.github.mikexliu.stack.guice.plugins.timed;
 
@@ -314,6 +315,7 @@ public class TimedInterceptor implements MethodInterceptor {
 }
 
 ```
+###### [source](https://github.com/mikexliu/stack/blob/master/stack-server/src/main/java/io/github/mikexliu/stack/guice/plugins/timed/TimedInterceptor.java)
 ```java
 package io.github.mikexliu.stack.guice.plugins.timed;
 
@@ -331,6 +333,7 @@ public class TimedPlugin extends StackPlugin {
     }
 }
 ```
+###### [source](https://github.com/mikexliu/stack/blob/master/stack-server/src/main/java/io/github/mikexliu/stack/guice/plugins/timed/TimedPlugin.java)
 Notice the call `bindDependency`. This tells stack that we also need to include the `MetricsPlugin` as part of its
 dependency injection algorithm. `timed` needs an instance of `MetricRegistry` in `TimedInterceptor` but we don't want to
 create an instance for every `Timed` annotation. In fact, there should only be one instance so the metrics can be
@@ -366,6 +369,7 @@ public final class MetricsManagerResource {
     }
 }
 ```
+###### [source](https://github.com/mikexliu/stack/blob/master/stack-server/src/main/java/io/github/mikexliu/stack/guice/plugins/metrics/MetricsManagerResource.java)
 ```java
 package io.github.mikexliu.stack.guice.plugins.metrics;
 
@@ -398,7 +402,8 @@ public class MetricsManager {
     }
 }
 ```
-```
+###### [source](https://github.com/mikexliu/stack/blob/master/stack-server/src/main/java/io/github/mikexliu/stack/guice/plugins/metrics/MetricsManager.java)
+```java
 package io.github.mikexliu.stack.guice.plugins.metrics;
 
 public class MetricsPlugin extends StackPlugin {
@@ -412,6 +417,7 @@ public class MetricsPlugin extends StackPlugin {
     }
 }
 ```
+###### [source](https://github.com/mikexliu/stack/blob/master/stack-server/src/main/java/io/github/mikexliu/stack/guice/plugins/metrics/MetricsPlugin.java)
 Simply by including `MetricsManagerResource`, we create an entirely new endpoint that can be used by the server. Notice
 it does not follow the convention `abstract class` and `implementing class`. This is purely because we do not expect
 there to be multiple implementations of the `resource`.
