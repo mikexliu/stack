@@ -343,10 +343,10 @@ public class StackServer {
          */
         public StackServer build() throws Exception {
             Preconditions.checkArgument(!apiPackageNames.isEmpty(), "No api package name specified; cannot find api classes.");
-            Preconditions.checkArgument(Strings.isNullOrEmpty(version) && swaggerEnabled, "Version specified but swagger-ui is not enabled.");
-            Preconditions.checkArgument(Strings.isNullOrEmpty(description) && swaggerEnabled, "Description specified but swagger-ui is not enabled.");
-            Preconditions.checkArgument(Strings.isNullOrEmpty(title) && swaggerEnabled, "Title specified but swagger-ui is not enabled.");
-            Preconditions.checkArgument(Strings.isNullOrEmpty(swaggerUIDirectory) && swaggerEnabled, "Swagger directory specified but swagger-ui is not enabled.");
+            Preconditions.checkArgument(!Strings.isNullOrEmpty(version) && swaggerEnabled, "Version specified but swagger-ui is not enabled.");
+            Preconditions.checkArgument(!Strings.isNullOrEmpty(description) && swaggerEnabled, "Description specified but swagger-ui is not enabled.");
+            Preconditions.checkArgument(!Strings.isNullOrEmpty(title) && swaggerEnabled, "Title specified but swagger-ui is not enabled.");
+            Preconditions.checkArgument(!Strings.isNullOrEmpty(swaggerUIDirectory) && swaggerEnabled, "Swagger directory specified but swagger-ui is not enabled.");
 
             plugins.forEach(appPluginClass -> gatherPluginDependencies(appPluginClass));
 
