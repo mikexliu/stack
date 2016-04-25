@@ -2,6 +2,7 @@ package io.github.mikexliu.main;
 
 import io.github.mikexliu.guice.modules.ServerExampleModule;
 import io.github.mikexliu.stack.guice.plugins.metrics.timed.TimedPlugin;
+import io.github.mikexliu.stack.guice.plugins.persistence.filesystem.FileSystemPlugin;
 import io.github.mikexliu.stack.guice.plugins.services.scheduledservice.ScheduledServicePlugin;
 import io.github.mikexliu.stack.server.StackServer;
 
@@ -18,6 +19,7 @@ public class Main {
                 .withSwaggerUiDirectory("swagger-ui")
                 .withSwaggerEnabled()
                 .withPlugin(ScheduledServicePlugin.class)
+                .withPlugin(FileSystemPlugin.class)
                 .withPlugin(TimedPlugin.class)
                 .withModule(new ServerExampleModule())
                 .withCorsEnabled()

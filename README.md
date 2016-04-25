@@ -186,7 +186,7 @@ public class AgingService extends AbstractScheduledService {
 
     @Timed
     @Override
-    public void run() {
+    public void runOneIteration() {
         try {
             usersCache.getAllUsers().values().forEach(User::growUp);
         } catch (Exception e) {

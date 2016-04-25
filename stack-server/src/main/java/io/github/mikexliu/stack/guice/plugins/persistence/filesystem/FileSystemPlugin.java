@@ -1,5 +1,6 @@
 package io.github.mikexliu.stack.guice.plugins.persistence.filesystem;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import com.google.inject.Provides;
@@ -38,6 +39,7 @@ public class FileSystemPlugin extends StackPlugin {
     @Singleton
     @Provides
     public FileSystemManager fileSystemManagerProvider() {
-        return new FileSystemManager(fileSystem);
+        final ObjectMapper objectMapper = new ObjectMapper();
+        return new FileSystemManager(objectMapper, fileSystem);
     }
 }
