@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.plugins.timed;
+package io.github.mikexliu.stack.guice.plugins.metrics.timed;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

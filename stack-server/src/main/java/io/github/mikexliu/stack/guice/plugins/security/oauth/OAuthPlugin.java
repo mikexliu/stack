@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.plugins.oauth;
+package io.github.mikexliu.stack.guice.plugins.security.oauth;
 
 import io.github.mikexliu.stack.guice.plugins.StackPlugin;
 

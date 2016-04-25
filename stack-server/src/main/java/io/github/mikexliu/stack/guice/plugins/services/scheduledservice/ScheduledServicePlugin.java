@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.plugins.scheduledservice;
+package io.github.mikexliu.stack.guice.plugins.services.scheduledservice;
 
 import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.inject.Binding;
@@ -16,7 +16,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Provides a REST interface into managing ScheduledServices.
+ * Provides a REST interface into managing {@link io.github.mikexliu.stack.guice.plugins.scheduledservice.AbstractScheduledService}.
+ * The manager class, {@link ScheduledServiceManager} can be injected with {@code Provider<ScheduledServiceManager>}.
  */
 public final class ScheduledServicePlugin extends StackPlugin {
 
@@ -29,16 +30,16 @@ public final class ScheduledServicePlugin extends StackPlugin {
 
     @Singleton
     @Provides
-    public ScheduledServiceManager servicesManagerProvider(final Injector injector) {
+    public ScheduledServiceManager scheduledServiceManagerProvider(final Injector injector) {
         try {
-            return createServicesManager(injector);
+            return createScheduledServiceManager(injector);
         } finally {
             startServices(injector);
             addShutdownHook(injector);
         }
     }
 
-    private static ScheduledServiceManager createServicesManager(final Injector injector) {
+    private static ScheduledServiceManager createScheduledServiceManager(final Injector injector) {
         final ScheduledServiceManager scheduledServiceManager = new ScheduledServiceManager();
         final List<AbstractScheduledService> scheduledServices = new LinkedList<>();
         final Map<Key<?>, Binding<?>> allBindings = injector.getAllBindings();

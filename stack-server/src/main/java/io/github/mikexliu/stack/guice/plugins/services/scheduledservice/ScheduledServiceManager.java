@@ -1,4 +1,4 @@
-package io.github.mikexliu.stack.guice.plugins.scheduledservice;
+package io.github.mikexliu.stack.guice.plugins.services.scheduledservice;
 
 import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.common.util.concurrent.Service;
@@ -10,15 +10,15 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Package Private class
+ * TODO: Package Private class
  */
-class ScheduledServiceManager {
+public class ScheduledServiceManager {
 
     private static final Logger log = LoggerFactory.getLogger(ScheduledServiceManager.class);
 
     private final Map<String, AbstractScheduledService> services;
 
-    public ScheduledServiceManager() {
+    ScheduledServiceManager() {
         services = new HashMap<>();
     }
 

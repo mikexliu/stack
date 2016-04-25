@@ -2,8 +2,8 @@ package io.github.mikexliu.scheduledservice;
 
 import com.google.inject.Inject;
 import io.github.mikexliu.collect.User;
-import io.github.mikexliu.stack.guice.plugins.scheduledservice.AbstractScheduledService;
-import io.github.mikexliu.stack.guice.plugins.timed.Timed;
+import io.github.mikexliu.stack.guice.plugins.metrics.timed.Timed;
+import io.github.mikexliu.stack.guice.plugins.services.scheduledservice.AbstractScheduledService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.UsersCache;
