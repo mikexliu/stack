@@ -1,6 +1,5 @@
 package io.github.mikexliu.stack.guice.plugins.services.scheduledservice;
 
-import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.inject.Binding;
 import com.google.inject.Injector;
 import com.google.inject.Key;
@@ -16,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Provides a REST interface into managing {@link io.github.mikexliu.stack.guice.plugins.scheduledservice.AbstractScheduledService}.
+ * Provides a REST interface into managing {@link io.github.mikexliu.stack.guice.plugins.services.scheduledservice.AbstractScheduledService}.
  * The manager class, {@link ScheduledServiceManager} can be injected with {@code Provider<ScheduledServiceManager>}.
  */
 public final class ScheduledServicePlugin extends StackPlugin {
@@ -41,25 +40,14 @@ public final class ScheduledServicePlugin extends StackPlugin {
 
     private static ScheduledServiceManager createScheduledServiceManager(final Injector injector) {
         final ScheduledServiceManager scheduledServiceManager = new ScheduledServiceManager();
-        final List<AbstractScheduledService> scheduledServices = new LinkedList<>();
-        final Map<Key<?>, Binding<?>> allBindings = injector.getAllBindings();
-
-        for (final Map.Entry<Key<?>, Binding<?>> entry : allBindings.entrySet()) {
-            final Key<?> key = entry.getKey();
-
-            final Class<?> clazz = key.getTypeLiteral().getRawType();
-            if (AbstractScheduledService.class.isAssignableFrom(clazz)) {
-                scheduledServices.add(AbstractScheduledService.class.cast(entry.getValue().getProvider().get()));
-            }
-        }
-        scheduledServices.forEach(scheduledServiceManager::addService);
+        getScheduledServices(injector).forEach(scheduledServiceManager::addService);
         return scheduledServiceManager;
     }
 
     private static void startServices(final Injector injector) {
         getScheduledServices(injector).forEach(scheduledService -> {
             log.info("Starting " + scheduledService.getClass());
-            scheduledService.startAsync();
+            scheduledService.start();
         });
     }
 
@@ -69,21 +57,21 @@ public final class ScheduledServicePlugin extends StackPlugin {
             public void run() {
                 getScheduledServices(injector).forEach(scheduledService -> {
                     log.info("Stopping " + scheduledService.getClass());
-                    scheduledService.stopAsync();
+                    scheduledService.stop();
                 });
             }
         });
     }
 
-    private static List<com.google.common.util.concurrent.AbstractScheduledService> getScheduledServices(final Injector injector) {
-        final List<com.google.common.util.concurrent.AbstractScheduledService> scheduledServices = new LinkedList<>();
+    private static List<AbstractScheduledService> getScheduledServices(final Injector injector) {
+        final List<AbstractScheduledService> scheduledServices = new LinkedList<>();
         final Map<Key<?>, Binding<?>> allBindings = injector.getAllBindings();
         for (final Map.Entry<Key<?>, Binding<?>> entry : allBindings.entrySet()) {
             final Key<?> key = entry.getKey();
 
             final Class<?> clazz = key.getTypeLiteral().getRawType();
-            if (com.google.common.util.concurrent.AbstractScheduledService.class.isAssignableFrom(clazz)) {
-                scheduledServices.add(com.google.common.util.concurrent.AbstractScheduledService.class.cast(entry.getValue().getProvider().get()));
+            if (AbstractScheduledService.class.isAssignableFrom(clazz)) {
+                scheduledServices.add(AbstractScheduledService.class.cast(entry.getValue().getProvider().get()));
             }
         }
         return scheduledServices;

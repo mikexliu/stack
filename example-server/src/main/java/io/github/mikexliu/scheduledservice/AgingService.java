@@ -11,6 +11,8 @@ import service.UsersCache;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
+
 public class AgingService extends AbstractScheduledService {
 
     private static final Logger log = LoggerFactory.getLogger(AgingService.class);
@@ -23,13 +25,13 @@ public class AgingService extends AbstractScheduledService {
     }
 
     @Override
-    protected Scheduler scheduler() {
+    public Scheduler scheduler() {
         return Scheduler.newFixedDelaySchedule(2, 1, TimeUnit.SECONDS);
     }
 
     @Timed
     @Override
-    public void run() {
+    public void runOneIteration() {
         try {
             usersCache.getAllUsers().values().forEach(User::growUp);
             TimeUnit.SECONDS.sleep(new Random().nextInt(3));

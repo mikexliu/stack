@@ -48,9 +48,9 @@ public final class ScheduledServiceManagerResource {
             @ApiParam(value = "service", required = true)
             @QueryParam(value = "service")
             final String service) {
-        final Optional<com.google.common.util.concurrent.AbstractScheduledService> optionalService = scheduledServiceManager.getService(service);
+        final Optional<AbstractScheduledService> optionalService = scheduledServiceManager.getService(service);
         if (optionalService.isPresent()) {
-            final com.google.common.util.concurrent.AbstractScheduledService scheduledService = optionalService.get();
+            final AbstractScheduledService scheduledService = optionalService.get();
             if (scheduledService.state() == Service.State.FAILED) {
                 return scheduledService.failureCause();
             }

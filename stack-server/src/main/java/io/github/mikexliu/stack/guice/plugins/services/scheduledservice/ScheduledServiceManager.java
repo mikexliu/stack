@@ -1,6 +1,5 @@
 package io.github.mikexliu.stack.guice.plugins.services.scheduledservice;
 
-import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.common.util.concurrent.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,15 +8,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * TODO: Package Private class
- */
 public class ScheduledServiceManager {
 
     private static final Logger log = LoggerFactory.getLogger(ScheduledServiceManager.class);
 
     private final Map<String, AbstractScheduledService> services;
 
+    /**
+     * Package private constructor to prevent creation of this object.
+     */
     ScheduledServiceManager() {
         services = new HashMap<>();
     }
@@ -36,17 +35,13 @@ public class ScheduledServiceManager {
     }
 
     public void runOnce(final String name) {
-        getService(name).ifPresent(service -> {
-            if (service instanceof Runnable) {
-                ((Runnable) service).run();
-            }
-        });
+        getService(name).ifPresent(service -> service.runOneIteration());
     }
 
     public void start(final String name) {
         getService(name).ifPresent(service -> {
             if (!service.isRunning()) {
-                services.get(name).startAsync();
+                services.get(name).start();
             }
         });
     }
@@ -54,7 +49,7 @@ public class ScheduledServiceManager {
     public void stop(final String name) {
         getService(name).ifPresent(service -> {
             if (service.isRunning()) {
-                services.get(name).stopAsync();
+                services.get(name).stop();
             }
         });
     }

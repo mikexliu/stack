@@ -73,8 +73,6 @@ public class StackServer {
         appPlugins.addAll(this.builder.modules);
         appPlugins.addAll(this.builder.pluginInstances.values());
 
-        log.info("Plugins: " + appPlugins);
-
         final Injector appInjector = Guice.createInjector(appPlugins);
 
         // stack modules

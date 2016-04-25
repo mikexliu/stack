@@ -14,6 +14,9 @@ public class FileSystemManager {
 
     private final File fileSystem;
 
+    /**
+     * Package private constructor to prevent creation of this object.
+     */
     FileSystemManager(final File fileSystem) {
         this.fileSystem = fileSystem;
     }
