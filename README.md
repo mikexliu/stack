@@ -518,11 +518,13 @@ public class Main {
 ```
 ###### [source](https://github.com/mikexliu/stack/blob/master/example-remote/src/main/java/io/github/mikexliu/main/Main.java)
 
-# planned
+# planned (in no particular order)
 - [x] metrics integration
 - [ ] pagination plugin
 - [ ] metric-ui plugin
-- [ ] swagger-ui jar
+- [ ] swagger-ui jar extension
+- [ ] javadoc generation
+- [ ] authentication
 
 # license
     Copyright 2016 Mike Liu
