@@ -38,7 +38,7 @@
     <dependencies>
         <dependency>
             <groupId>io.github.mikexliu</groupId>
-            <artifactId>client-example</artifactId>
+            <artifactId>example-client</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
