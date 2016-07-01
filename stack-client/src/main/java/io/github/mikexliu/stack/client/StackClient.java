@@ -81,7 +81,7 @@ public class StackClient {
         return getClient(resourceClass, url);
     }
 
-    public <T> T getClient(final Class<T> resourceClass, final String url) {
+    public static <T> T getClient(final Class<T> resourceClass, final String url) {
         // TODO: verify the url with the protocol, endpoint, and port
 
         final ProxyFactory factory = new ProxyFactory();
@@ -171,7 +171,7 @@ public class StackClient {
         }
     }
 
-    private String getUnformattedPath(final Method thisMethod, final String url) {
+    private static String getUnformattedPath(final Method thisMethod, final String url) {
         final Path methodPathAnnotation = thisMethod.getAnnotation(Path.class);
         final String unformattedPath;
         if (methodPathAnnotation != null) {
@@ -183,7 +183,7 @@ public class StackClient {
         return unformattedPath;
     }
 
-    private String getFormattedPath(final String unformattedPath, final Method thisMethod, final Object[] args)
+    private static String getFormattedPath(final String unformattedPath, final Method thisMethod, final Object[] args)
             throws Throwable {
         // TODO: need to support: @MatrixParam, @HeaderParam, @CookieParam, @FormParam
         // let's focus on path and query for now
@@ -245,7 +245,7 @@ public class StackClient {
         return formattedPath;
     }
 
-    private MediaType[] getConsumesType(final Method thisMethod) {
+    private static MediaType[] getConsumesType(final Method thisMethod) {
         final Consumes consumesAnnotation = thisMethod.getAnnotation(Consumes.class);
         if (consumesAnnotation != null) {
             final MediaType[] consumesType = getMediaTypes(consumesAnnotation);
@@ -268,7 +268,7 @@ public class StackClient {
         return new MediaType[0];
     }
 
-    private MediaType[] getMediaTypes(final Consumes consumesAnnotation) {
+    private static MediaType[] getMediaTypes(final Consumes consumesAnnotation) {
         final String[] consumesTypes = consumesAnnotation.value();
         final MediaType[] consumesType;
         if (consumesTypes.length == 0) {
@@ -281,7 +281,7 @@ public class StackClient {
         return consumesType;
     }
 
-    private MediaType[] getProducesType(final Method thisMethod) {
+    private static MediaType[] getProducesType(final Method thisMethod) {
         final Produces producesAnnotation = thisMethod.getAnnotation(Produces.class);
         if (producesAnnotation != null) {
             final MediaType[] consumesType = getMediaTypes(producesAnnotation);
@@ -304,7 +304,7 @@ public class StackClient {
         return new MediaType[0];
     }
 
-    private MediaType[] getMediaTypes(final Produces producesAnnotation) {
+    private static MediaType[] getMediaTypes(final Produces producesAnnotation) {
         final String[] consumesTypes = producesAnnotation.value();
         final MediaType[] consumesType;
         if (consumesTypes.length == 0) {
