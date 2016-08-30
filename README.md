@@ -31,8 +31,6 @@
 `stack` requires very little code to get started. The source code for the examples are available in the repository. 
 **Some lines have been removed for clarity in this README. All sources are linked.**
 
-a
-
 ### creating a server
 Define an endpoint using standard [jersey](https://jersey.java.net/documentation/latest/jaxrs-resources.html) and [swagger](https://github.com/swagger-api/swagger-core/wiki/Annotations-1.5.X).
 Note that the classes and all methods are abstract.
