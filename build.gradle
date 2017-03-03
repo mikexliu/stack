@@ -19,18 +19,18 @@ subprojects {
     }
 
     dependencies {
-        compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.13'
         compile group: 'org.javassist', name: 'javassist', version: '3.20.0-GA'
-        compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.3.7.v20160115'
-        compile group: 'org.eclipse.jetty', name: 'jetty-util', version: '9.3.7.v20160115'
-        compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.3.7.v20160115'
+
+        compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.2.v20170220'
+        compile group: 'org.eclipse.jetty', name: 'jetty-util', version: '9.4.2.v20170220'
+        compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.4.2.v20170220'
+
         compile group: 'io.swagger', name: 'swagger-jersey2-jaxrs', version: '1.5.3'
-        compile group: 'com.sun.jersey.contribs', name: 'jersey-guice', version: '1.19'
-        compile group: 'com.sun.jersey', name: 'jersey-json', version: '1.19'
-        compile group: 'com.google.inject', name: 'guice', version: '4.0'
-        compile group: 'com.google.inject.extensions', name: 'guice-servlet', version: '4.0'
-        compile group: 'com.google.inject.extensions', name: 'guice-assistedinject', version: '4.0'
+
         compile group: 'com.google.guava', name: 'guava', version: '18.0'
+
+        compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.13'
+
         testCompile group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
         testCompile group: 'junit', name: 'junit', version: '4.12'
     }
